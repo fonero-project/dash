@@ -5,7 +5,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/dash-config.h"
+#include "config/azart-config.h"
 #endif
 
 #include "net.h"
@@ -663,7 +663,7 @@ void CNode::copyStats(CNodeStats &stats)
         nPingUsecWait = GetTimeMicros() - nPingUsecStart;
     }
 
-    // Raw ping time is in microseconds, but show it to user as whole seconds (Dash users should be well used to small numbers with many decimal places by now :)
+    // Raw ping time is in microseconds, but show it to user as whole seconds (Azart users should be well used to small numbers with many decimal places by now :)
     stats.dPingTime = (((double)nPingUsecTime) / 1e6);
     stats.dMinPing  = (((double)nMinPingUsecTime) / 1e6);
     stats.dPingWait = (((double)nPingUsecWait) / 1e6);
@@ -915,7 +915,7 @@ static bool CompareNodeTXTime(const NodeEvictionCandidate &a, const NodeEviction
 /** Try to find a connection to evict when the node is full.
  *  Extreme care must be taken to avoid opening the node to attacker
  *   triggered network partitioning.
- *  The strategy used here is to protect a small number of peers
+ *  The strategy used here is to azart a small number of peers
  *   for each of several distinct characteristics which are difficult
  *   to forge.  In order to partition a node the attacker must be
  *   simultaneously better at all of them than honest peers.
@@ -940,37 +940,37 @@ bool CConnman::AttemptToEvictConnection()
 
     if (vEvictionCandidates.empty()) return false;
 
-    // Protect connections with certain characteristics
+    // Azart connections with certain characteristics
 
-    // Deterministically select 4 peers to protect by netgroup.
+    // Deterministically select 4 peers to azart by netgroup.
     // An attacker cannot predict which netgroups will be protected.
     std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(), CompareKeyedNetGroup);
     vEvictionCandidates.erase(vEvictionCandidates.end() - std::min(4, static_cast<int>(vEvictionCandidates.size())), vEvictionCandidates.end());
 
     if (vEvictionCandidates.empty()) return false;
 
-    // Protect the 8 nodes with the best ping times.
+    // Azart the 8 nodes with the best ping times.
     // An attacker cannot manipulate this metric without physically moving nodes closer to the target.
     std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(), ReverseCompareNodeMinPingTime);
     vEvictionCandidates.erase(vEvictionCandidates.end() - std::min(8, static_cast<int>(vEvictionCandidates.size())), vEvictionCandidates.end());
 
     if (vEvictionCandidates.empty()) return false;
 
-    // Protect 4 nodes that most recently sent us transactions.
+    // Azart 4 nodes that most recently sent us transactions.
     // An attacker cannot manipulate this metric without performing useful work.
     std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(), CompareNodeTXTime);
     vEvictionCandidates.erase(vEvictionCandidates.end() - std::min(4, static_cast<int>(vEvictionCandidates.size())), vEvictionCandidates.end());
 
     if (vEvictionCandidates.empty()) return false;
 
-    // Protect 4 nodes that most recently sent us blocks.
+    // Azart 4 nodes that most recently sent us blocks.
     // An attacker cannot manipulate this metric without performing useful work.
     std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(), CompareNodeBlockTime);
     vEvictionCandidates.erase(vEvictionCandidates.end() - std::min(4, static_cast<int>(vEvictionCandidates.size())), vEvictionCandidates.end());
 
     if (vEvictionCandidates.empty()) return false;
 
-    // Protect the half of the remaining nodes which have been connected the longest.
+    // Azart the half of the remaining nodes which have been connected the longest.
     // This replicates the existing implicit behavior.
     std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(), ReverseCompareNodeTimeConnected);
     vEvictionCandidates.erase(vEvictionCandidates.end() - static_cast<int>(vEvictionCandidates.size() / 2), vEvictionCandidates.end());
@@ -1446,7 +1446,7 @@ void ThreadMapPort()
             }
         }
 
-        std::string strDesc = "Dash Core " + FormatFullVersion();
+        std::string strDesc = "Azart Core " + FormatFullVersion();
 
         try {
             while (true) {
@@ -2032,7 +2032,7 @@ bool CConnman::BindListenPort(const CService &addrBind, std::string& strError, b
     {
         int nErr = WSAGetLastError();
         if (nErr == WSAEADDRINUSE)
-            strError = strprintf(_("Unable to bind to %s on this computer. Dash Core is probably already running."), addrBind.ToString());
+            strError = strprintf(_("Unable to bind to %s on this computer. Azart Core is probably already running."), addrBind.ToString());
         else
             strError = strprintf(_("Unable to bind to %s on this computer (bind returned error %s)"), addrBind.ToString(), NetworkErrorString(nErr));
         LogPrintf("%s\n", strError);

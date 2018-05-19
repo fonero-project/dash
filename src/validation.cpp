@@ -52,7 +52,7 @@
 using namespace std;
 
 #if defined(NDEBUG)
-# error "Dash Core cannot be compiled without assertions."
+# error "Azart Core cannot be compiled without assertions."
 #endif
 
 /**
@@ -608,7 +608,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
     // Check for conflicts with in-memory transactions
     set<uint256> setConflicts;
     {
-    LOCK(pool.cs); // protect pool.mapNextTx
+    LOCK(pool.cs); // azart pool.mapNextTx
     BOOST_FOREACH(const CTxIn &txin, tx.vin)
     {
         if (pool.mapNextTx.count(txin.prevout))
@@ -1230,69 +1230,60 @@ NOTE:   unlike bitcoin we are using PREVIOUS block height here,
 */
 CAmount GetBlockSubsidy(int nPrevBits, int nPrevHeight, const Consensus::Params& consensusParams, bool fSuperblockPartOnly)
 {
-    double dDiff;
-    CAmount nSubsidyBase;
+       double dDiff;
+       CAmount nSubsidy = 0;
+       CAmount nSubsidyBase = 0;
+       dDiff = ConvertBitsToDouble(nPrevBits);
+      
+       if(nPrevHeight < 100) {nSubsidyBase = 3750;}  // premine 1,5% 375000
+       if((nPrevHeight >= 100) & (nPrevHeight <= 3000)) {nSubsidyBase = 2;}
+       if(nPrevHeight == 3332) {nSubsidyBase = 1000;}
+       if(nPrevHeight == 5554) {nSubsidyBase = 1000;}
+       if(nPrevHeight == 7776) {nSubsidyBase = 1000;}
+       if(nPrevHeight == 9998) {nSubsidyBase = 1000;}
+       if(nPrevHeight == 12221) {nSubsidyBase = 2500;}
+       if(nPrevHeight == 14443) {nSubsidyBase = 2500;}
+       if(nPrevHeight == 16665) {nSubsidyBase = 2500;}
+       if(nPrevHeight == 18887) {nSubsidyBase = 2500;}
+       if(nPrevHeight == 21600) {nSubsidyBase = 5000;}
+       if(nPrevHeight == 43200) {nSubsidyBase = 5000;}
+       if(nPrevHeight == 64800) {nSubsidyBase = 5000;}
+       if(nPrevHeight == 86400) {nSubsidyBase = 5000;}
+       if(nPrevHeight == 108000) {nSubsidyBase = 5000;}
+       if(nPrevHeight == 129600) {nSubsidyBase = 5000;}
+       if(nPrevHeight == 151200) {nSubsidyBase = 5000;}
+       if(nPrevHeight == 172800) {nSubsidyBase = 5000;}
+       if(nPrevHeight == 194400) {nSubsidyBase = 5000;}
+       if(nPrevHeight == 216000) {nSubsidyBase = 5000;}
+       if(nPrevHeight == 237600) {nSubsidyBase = 5000;}
+       if(nPrevHeight == 259200) {nSubsidyBase = 5000;}
+       if(nPrevHeight == 395280) {nSubsidyBase = 10000;}
+       if(nPrevHeight == 527040) {nSubsidyBase = 10000;}
+       if(nPrevHeight == 658800) {nSubsidyBase = 10000;}
+       if(nPrevHeight == 790560) {nSubsidyBase = 10000;}
+       if(nPrevHeight == 922320) {nSubsidyBase = 10000;}
+       if(nPrevHeight == 1054080) {nSubsidyBase = 10000;}
+       if(nPrevHeight == 1185840) {nSubsidyBase = 10000;}
+       if(nPrevHeight == 1317600) {nSubsidyBase = 10000;}
+        
+	if(nSubsidyBase == 0) {
+	    nSubsidy = (21.000009 - (0.000009 * nPrevHeight)) * COIN;
+	} else {
+	    nSubsidy = nSubsidyBase * COIN;
+	}
 
-    if (nPrevHeight <= 4500 && Params().NetworkIDString() == CBaseChainParams::MAIN) {
-        /* a bug which caused diff to not be correctly calculated */
-        dDiff = (double)0x0000ffff / (double)(nPrevBits & 0x00ffffff);
-    } else {
-        dDiff = ConvertBitsToDouble(nPrevBits);
-    }
+       if((nSubsidy / COIN) < 2) {nSubsidy = 2 * COIN;}
 
-    if (nPrevHeight < 5465) {
-        // Early ages...
-        // 1111/((x+1)^2)
-        nSubsidyBase = (1111.0 / (pow((dDiff+1.0),2.0)));
-        if(nSubsidyBase > 500) nSubsidyBase = 500;
-        else if(nSubsidyBase < 1) nSubsidyBase = 1;
-    } else if (nPrevHeight < 17000 || (dDiff <= 75 && nPrevHeight < 24000)) {
-        // CPU mining era
-        // 11111/(((x+51)/6)^2)
-        nSubsidyBase = (11111.0 / (pow((dDiff+51.0)/6.0,2.0)));
-        if(nSubsidyBase > 500) nSubsidyBase = 500;
-        else if(nSubsidyBase < 25) nSubsidyBase = 25;
-    } else {
-        // GPU/ASIC mining era
-        // 2222222/(((x+2600)/9)^2)
-        nSubsidyBase = (2222222.0 / (pow((dDiff+2600.0)/9.0,2.0)));
-        if(nSubsidyBase > 25) nSubsidyBase = 25;
-        else if(nSubsidyBase < 5) nSubsidyBase = 5;
-    }
-
-    // LogPrintf("height %u diff %4.2f reward %d\n", nPrevHeight, dDiff, nSubsidyBase);
-    CAmount nSubsidy = nSubsidyBase * COIN;
-
-    // yearly decline of production by ~7.1% per year, projected ~18M coins max by year 2050+.
-    for (int i = consensusParams.nSubsidyHalvingInterval; i <= nPrevHeight; i += consensusParams.nSubsidyHalvingInterval) {
-        nSubsidy -= nSubsidy/14;
-    }
-
-    // Hard fork to reduce the block reward by 10 extra percent (allowing budget/superblocks)
-    CAmount nSuperblockPart = (nPrevHeight > consensusParams.nBudgetPaymentsStartBlock) ? nSubsidy/10 : 0;
-
-    return fSuperblockPartOnly ? nSuperblockPart : nSubsidy - nSuperblockPart;
+       // Hard fork to reduce the block reward by 10 extra percent (allowing budget/superblocks)
+       CAmount nSuperblockPart = (nPrevHeight > consensusParams.nBudgetPaymentsStartBlock) ? nSubsidy/10 : 0;
+  
+       return fSuperblockPartOnly ? nSuperblockPart : nSubsidy - nSuperblockPart;
 }
 
 CAmount GetMasternodePayment(int nHeight, CAmount blockValue)
 {
-    CAmount ret = blockValue/5; // start at 20%
-
-    int nMNPIBlock = Params().GetConsensus().nMasternodePaymentsIncreaseBlock;
-    int nMNPIPeriod = Params().GetConsensus().nMasternodePaymentsIncreasePeriod;
-
-                                                                      // mainnet:
-    if(nHeight > nMNPIBlock)                  ret += blockValue / 20; // 158000 - 25.0% - 2014-10-24
-    if(nHeight > nMNPIBlock+(nMNPIPeriod* 1)) ret += blockValue / 20; // 175280 - 30.0% - 2014-11-25
-    if(nHeight > nMNPIBlock+(nMNPIPeriod* 2)) ret += blockValue / 20; // 192560 - 35.0% - 2014-12-26
-    if(nHeight > nMNPIBlock+(nMNPIPeriod* 3)) ret += blockValue / 40; // 209840 - 37.5% - 2015-01-26
-    if(nHeight > nMNPIBlock+(nMNPIPeriod* 4)) ret += blockValue / 40; // 227120 - 40.0% - 2015-02-27
-    if(nHeight > nMNPIBlock+(nMNPIPeriod* 5)) ret += blockValue / 40; // 244400 - 42.5% - 2015-03-30
-    if(nHeight > nMNPIBlock+(nMNPIPeriod* 6)) ret += blockValue / 40; // 261680 - 45.0% - 2015-05-01
-    if(nHeight > nMNPIBlock+(nMNPIPeriod* 7)) ret += blockValue / 40; // 278960 - 47.5% - 2015-06-01
-    if(nHeight > nMNPIBlock+(nMNPIPeriod* 9)) ret += blockValue / 40; // 313520 - 50.0% - 2015-08-03
-
-    return ret;
+       CAmount ret = (blockValue * 0.70);
+       return ret;
 }
 
 bool IsInitialBlockDownload()
@@ -1300,6 +1291,7 @@ bool IsInitialBlockDownload()
     static bool lockIBDState = false;
     if (lockIBDState)
         return false;
+
     if (fImporting || fReindex)
         return true;
     LOCK(cs_main);
@@ -1310,6 +1302,8 @@ bool IsInitialBlockDownload()
         return true;
     if (chainActive.Tip()->GetBlockTime() < (GetTime() - chainParams.MaxTipAge()))
         return true;
+
+
     lockIBDState = true;
     return false;
 }
@@ -1863,7 +1857,7 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
 static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
 
 void ThreadScriptCheck() {
-    RenameThread("dash-scriptch");
+    RenameThread("azart-scriptch");
     scriptcheckqueue.Thread();
 }
 
@@ -2015,9 +2009,11 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
     // Now that the whole chain is irreversibly beyond that time it is applied to all blocks except the
     // two in the chain that violate it. This prevents exploiting the issue against nodes during their
     // initial block download.
-    bool fEnforceBIP30 = (!pindex->phashBlock) || // Enforce on CreateNewBlock invocations which don't have a hash.
-                          !((pindex->nHeight==91842 && pindex->GetBlockHash() == uint256S("0x00000000000a4d0a398161ffc163c503763b1f4360639393e0e4c8e300e0caec")) ||
-                           (pindex->nHeight==91880 && pindex->GetBlockHash() == uint256S("0x00000000000743f190a18c5577a3c2d2a1f610ae9601ac046a38084ccb7cd721")));
+    // bool fEnforceBIP30 = (!pindex->phashBlock) || // Enforce on CreateNewBlock invocations which don't have a hash.
+    //                      !((pindex->nHeight==91842 && pindex->GetBlockHash() == uint256S("0x00000000000a4d0a398161ffc163c503763b1f4360639393e0e4c8e300e0caec")) ||
+    //                       (pindex->nHeight==91880 && pindex->GetBlockHash() == uint256S("0x00000000000743f190a18c5577a3c2d2a1f610ae9601ac046a38084ccb7cd721")));
+
+    bool fEnforceBIP30 = (!pindex->phashBlock);
 
     // Once BIP34 activated it was not possible to create new duplicate coinbases and thus other than starting
     // with the 2 existing duplicate coinbase pairs, not possible to create overwriting txs.  But by the
@@ -2215,7 +2211,7 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
     int64_t nTime3 = GetTimeMicros(); nTimeConnect += nTime3 - nTime2;
     LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)block.vtx.size(), 0.001 * (nTime3 - nTime2), 0.001 * (nTime3 - nTime2) / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime3 - nTime2) / (nInputs-1), nTimeConnect * 0.000001);
 
-    // DASH : MODIFIED TO CHECK MASTERNODE PAYMENTS AND SUPERBLOCKS
+    // AZART : MODIFIED TO CHECK MASTERNODE PAYMENTS AND SUPERBLOCKS
 
     // It's possible that we simply don't have enough data and this could fail
     // (i.e. block itself could be a correct one and we need to store it),
@@ -2226,15 +2222,15 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
     CAmount blockReward = nFees + GetBlockSubsidy(pindex->pprev->nBits, pindex->pprev->nHeight, chainparams.GetConsensus());
     std::string strError = "";
     if (!IsBlockValueValid(block, pindex->nHeight, blockReward, strError)) {
-        return state.DoS(0, error("ConnectBlock(DASH): %s", strError), REJECT_INVALID, "bad-cb-amount");
+        return state.DoS(0, error("ConnectBlock(AZART): %s", strError), REJECT_INVALID, "bad-cb-amount");
     }
 
     if (!IsBlockPayeeValid(block.vtx[0], pindex->nHeight, blockReward)) {
         mapRejectedBlocks.insert(make_pair(block.GetHash(), GetTime()));
-        return state.DoS(0, error("ConnectBlock(DASH): couldn't find masternode or superblock payments"),
+        return state.DoS(0, error("ConnectBlock(AZART): couldn't find masternode or superblock payments"),
                                 REJECT_INVALID, "bad-cb-payee");
     }
-    // END DASH
+    // END AZART
 
     if (!control.Wait())
         return state.DoS(100, false);
@@ -3166,7 +3162,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
                              REJECT_INVALID, "bad-cb-multiple");
 
 
-    // DASH : CHECK TRANSACTIONS FOR INSTANTSEND
+    // AZART : CHECK TRANSACTIONS FOR INSTANTSEND
 
     if(sporkManager.IsSporkActive(SPORK_3_INSTANTSEND_BLOCK_FILTERING)) {
         // We should never accept block which conflicts with completed transaction lock,
@@ -3183,17 +3179,17 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
                     // relaying instantsend data won't help it.
                     LOCK(cs_main);
                     mapRejectedBlocks.insert(make_pair(block.GetHash(), GetTime()));
-                    return state.DoS(0, error("CheckBlock(DASH): transaction %s conflicts with transaction lock %s",
+                    return state.DoS(0, error("CheckBlock(AZART): transaction %s conflicts with transaction lock %s",
                                                 tx.GetHash().ToString(), hashLocked.ToString()),
                                      REJECT_INVALID, "conflict-tx-lock");
                 }
             }
         }
     } else {
-        LogPrintf("CheckBlock(DASH): spork is off, skipping transaction locking checks\n");
+        LogPrintf("CheckBlock(AZART): spork is off, skipping transaction locking checks\n");
     }
 
-    // END DASH
+    // END AZART
 
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, block.vtx)

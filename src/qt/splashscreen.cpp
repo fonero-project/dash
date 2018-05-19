@@ -35,17 +35,18 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle) 
 
     // set reference point, paddings
     int paddingLeft             = 14;
-    int paddingTop              = 470;
+    int paddingTop              = 450;
     int titleVersionVSpace      = 17;
     int titleCopyrightVSpace    = 32;
 
     float fontFactor            = 1.0;
 
     // define text to place
-    QString titleText       = tr("Dash Core");
+    QString titleText       = tr("Azart Core");
     QString versionText     = QString(tr("Version %1")).arg(QString::fromStdString(FormatFullVersion()));
     QString copyrightTextBtc   = QChar(0xA9)+QString(" 2009-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The Bitcoin Core developers"));
     QString copyrightTextDash   = QChar(0xA9)+QString(" 2014-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The Dash Core developers"));
+    QString copyrightTextAzart   = QChar(0xA9)+QString(" 2018-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The Azart Core developers"));
     QString titleAddText    = networkStyle->getTitleAddText();
     // networkstyle.cpp can't (yet) read themes, so we do it here to get the correct Splash-screen
     QString splashScreenPath = ":/images/" + GUIUtil::getThemeName() + "/splash";
@@ -71,18 +72,19 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle) 
         fontFactor = 0.75;
     }
 
-    pixPaint.setFont(QFont(font, 28*fontFactor));
+    pixPaint.setFont(QFont(font, 18*fontFactor));
     fm = pixPaint.fontMetrics();
     titleTextWidth  = fm.width(titleText);
     pixPaint.drawText(paddingLeft,paddingTop,titleText);
 
-    pixPaint.setFont(QFont(font, 15*fontFactor));
+    pixPaint.setFont(QFont(font, 13*fontFactor));
     pixPaint.drawText(paddingLeft,paddingTop+titleVersionVSpace,versionText);
 
     // draw copyright stuff
     pixPaint.setFont(QFont(font, 10*fontFactor));
     pixPaint.drawText(paddingLeft,paddingTop+titleCopyrightVSpace,copyrightTextBtc);
     pixPaint.drawText(paddingLeft,paddingTop+titleCopyrightVSpace+12,copyrightTextDash);
+    pixPaint.drawText(paddingLeft,paddingTop+titleCopyrightVSpace+24,copyrightTextAzart);
 
     // draw additional text if special network
     if(!titleAddText.isEmpty()) {

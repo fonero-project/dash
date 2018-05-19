@@ -165,7 +165,7 @@ void TorControlConnection::readcb(struct bufferevent *bev, void *ctx)
             self->message.Clear();
         }
     }
-    //  Check for size of buffer - protect against memory exhaustion with very long lines
+    //  Check for size of buffer - azart against memory exhaustion with very long lines
     //  Do this after evbuffer_readln to make sure all full lines have been
     //  removed from the buffer. Everything left is an incomplete line.
     if (evbuffer_get_length(input) > MAX_LINE_LENGTH) {

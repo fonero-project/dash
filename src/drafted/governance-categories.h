@@ -4,22 +4,22 @@
 
 	* means the category has an associated class
 	
-	CDashNetwork: DASH NETWORK (ROOT)
+	CAzartNetwork: AZART NETWORK (ROOT)
 	has:
 		vector<CNetworkVariable> vecNetworkVariables;
-		vector<CDashProject> vecProjects;
+		vector<CAzartProject> vecProjects;
 		vector<CGovernanceObject> vecProposals;
 		vector<CBudgetContract> vecContracts;
 		vector<CBudgetUsers> vecUsers;
 
-	CDashProject:
+	CAzartProject:
 	has:
 		name
 		employees
 
 */
 
-	// DASH NETWORK (ROOT)
+	// AZART NETWORK (ROOT)
 	// 	-> NETWORK VARIABLE
 	// 		-> switch, setting
 	// 	-> CATEGORIES
@@ -49,7 +49,7 @@
 	// 			-> USER1 (only users are allowed here in this scope)
 	// 			-> USER2
 	// 		-> GROUP2 (EVO)
-	// 			-> VALUEOVERRIDE (STORE=DASHDRIVE)
+	// 			-> VALUEOVERRIDE (STORE=AZARTDRIVE)
 	// 			-> USER1
 
 	// 	-> COMPANIES

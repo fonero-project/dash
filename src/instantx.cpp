@@ -48,7 +48,7 @@ CInstantSend instantsend;
 
 void CInstantSend::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStream& vRecv, CConnman& connman)
 {
-    if(fLiteMode) return; // disable all Dash specific functionality
+    if(fLiteMode) return; // disable all Azart specific functionality
     if(!sporkManager.IsSporkActive(SPORK_2_INSTANTSEND_ENABLED)) return;
 
     // NOTE: NetMsgType::TXLOCKREQUEST is handled via ProcessMessage() in main.cpp
@@ -562,7 +562,7 @@ bool CInstantSend::ResolveConflicts(const CTxLockCandidate& txLockCandidate)
     // make sure the lock is ready
     if(!txLockCandidate.IsAllOutPointsReady()) return false;
 
-    LOCK(mempool.cs); // protect mempool.mapNextTx
+    LOCK(mempool.cs); // azart mempool.mapNextTx
 
     BOOST_FOREACH(const CTxIn& txin, txLockCandidate.txLockRequest.vin) {
         uint256 hashConflicting;

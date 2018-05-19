@@ -1,7 +1,7 @@
-Building Dash Core
+Building Azart Core
 
 After you install the usual build tools and C++ development tools,
-Dash Core also needs some build dependencies which are not always provided
+Azart Core also needs some build dependencies which are not always provided
 by default by the OS package manager
 (in particular BerkeleyDB 4.8 for building with wallet support).
 
@@ -16,15 +16,25 @@ depending on your environment:
 After installing the needed dependencies,
 use the autogen script to prepare the build environment.
 
+    sudo update-alternatives --config i686-w64-mingw32-gcc
+    (select i686-w64-mingw32-gcc-posix)
+    sudo update-alternatives --config i686-w64-mingw32-g++
+    (select i686-w64-mingw32-g++-posix)
+
+    sudo update-alternatives --config x86_64-w64-mingw32-gcc
+    (select x86_64-w64-mingw32-gcc-posix)
+    sudo update-alternatives --config x86_64-w64-mingw32-g++
+    (select x86_64-w64-mingw32-g++-posix)
+
     ./autogen.sh
     ./configure
     make
 
 Precompiled binaries are available at github, see
-https://github.com/dashpay/dash-binaries
+https://github.com/azartpay/azart
 
 Always verify the signatures and checksums.
 
-See doc/build-*.md for instructions on building dashd,
+See doc/build-*.md for instructions on building azartd,
 the intended-for-services, no-graphical-interface,
-reference implementation of Dash.
+reference implementation of Azart.

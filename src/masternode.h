@@ -131,7 +131,7 @@ struct masternode_info_t
 class CMasternode : public masternode_info_t
 {
 private:
-    // critical section to protect the inner data structures
+    // critical section to azart the inner data structures
     mutable CCriticalSection cs;
 
 public:
@@ -251,7 +251,7 @@ public:
         return false;
     }
 
-    /// Is the input associated with collateral public key? (and there is 1000 DASH - checking if valid masternode)
+    /// Is the input associated with collateral public key? (and there is 1000 AZART - checking if valid masternode)
     bool IsInputAssociatedWithPubkey();
 
     bool IsValidNetAddr();

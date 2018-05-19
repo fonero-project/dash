@@ -1,7 +1,7 @@
 // Copyright (c) 2014-2017 The Dash Core developers
 // Distributed under the MIT software license, see the accompanying
-#ifndef DASH_HDCHAIN_H
-#define DASH_HDCHAIN_H
+#ifndef AZART_HDCHAIN_H
+#define AZART_HDCHAIN_H
 
 #include "key.h"
 #include "sync.h"
@@ -40,7 +40,7 @@ private:
     SecureVector vchMnemonicPassphrase;
 
     std::map<uint32_t, CHDAccount> mapAccounts;
-    // critical section to protect mapAccounts
+    // critical section to azart mapAccounts
     mutable CCriticalSection cs_accounts;
 
 public:
@@ -149,4 +149,4 @@ public:
     std::string GetKeyPath() const;
 };
 
-#endif // DASH_HDCHAIN_H
+#endif // AZART_HDCHAIN_H

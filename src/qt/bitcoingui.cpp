@@ -127,7 +127,7 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *n
 
     GUIUtil::restoreWindowGeometry("nWindow", QSize(850, 550), this);
 
-    QString windowTitle = tr("Dash Core") + " - ";
+    QString windowTitle = tr("Azart Core") + " - ";
 #ifdef ENABLE_WALLET
     /* if compiled with wallet support, -disablewallet can still disable the wallet */
     enableWallet = !GetBoolArg("-disablewallet", false);
@@ -297,7 +297,7 @@ void BitcoinGUI::createActions()
     tabGroup->addAction(overviewAction);
 
     sendCoinsAction = new QAction(QIcon(":/icons/" + theme + "/send"), tr("&Send"), this);
-    sendCoinsAction->setStatusTip(tr("Send coins to a Dash address"));
+    sendCoinsAction->setStatusTip(tr("Send coins to a Azart address"));
     sendCoinsAction->setToolTip(sendCoinsAction->statusTip());
     sendCoinsAction->setCheckable(true);
 #ifdef Q_OS_MAC
@@ -312,7 +312,7 @@ void BitcoinGUI::createActions()
     sendCoinsMenuAction->setToolTip(sendCoinsMenuAction->statusTip());
 
     receiveCoinsAction = new QAction(QIcon(":/icons/" + theme + "/receiving_addresses"), tr("&Receive"), this);
-    receiveCoinsAction->setStatusTip(tr("Request payments (generates QR codes and dash: URIs)"));
+    receiveCoinsAction->setStatusTip(tr("Request payments (generates QR codes and azart: URIs)"));
     receiveCoinsAction->setToolTip(receiveCoinsAction->statusTip());
     receiveCoinsAction->setCheckable(true);
 #ifdef Q_OS_MAC
@@ -374,15 +374,15 @@ void BitcoinGUI::createActions()
     quitAction->setStatusTip(tr("Quit application"));
     quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
     quitAction->setMenuRole(QAction::QuitRole);
-    aboutAction = new QAction(QIcon(":/icons/" + theme + "/about"), tr("&About Dash Core"), this);
-    aboutAction->setStatusTip(tr("Show information about Dash Core"));
+    aboutAction = new QAction(QIcon(":/icons/" + theme + "/about"), tr("&About Azart Core"), this);
+    aboutAction->setStatusTip(tr("Show information about Azart Core"));
     aboutAction->setMenuRole(QAction::AboutRole);
     aboutAction->setEnabled(false);
     aboutQtAction = new QAction(QIcon(":/icons/" + theme + "/about_qt"), tr("About &Qt"), this);
     aboutQtAction->setStatusTip(tr("Show information about Qt"));
     aboutQtAction->setMenuRole(QAction::AboutQtRole);
     optionsAction = new QAction(QIcon(":/icons/" + theme + "/options"), tr("&Options..."), this);
-    optionsAction->setStatusTip(tr("Modify configuration options for Dash Core"));
+    optionsAction->setStatusTip(tr("Modify configuration options for Azart Core"));
     optionsAction->setMenuRole(QAction::PreferencesRole);
     optionsAction->setEnabled(false);
     toggleHideAction = new QAction(QIcon(":/icons/" + theme + "/about"), tr("&Show / Hide"), this);
@@ -399,11 +399,11 @@ void BitcoinGUI::createActions()
     unlockWalletAction->setToolTip(tr("Unlock wallet"));
     lockWalletAction = new QAction(tr("&Lock Wallet"), this);
     signMessageAction = new QAction(QIcon(":/icons/" + theme + "/edit"), tr("Sign &message..."), this);
-    signMessageAction->setStatusTip(tr("Sign messages with your Dash addresses to prove you own them"));
+    signMessageAction->setStatusTip(tr("Sign messages with your Azart addresses to prove you own them"));
     verifyMessageAction = new QAction(QIcon(":/icons/" + theme + "/transaction_0"), tr("&Verify message..."), this);
-    verifyMessageAction->setStatusTip(tr("Verify messages to ensure they were signed with specified Dash addresses"));
+    verifyMessageAction->setStatusTip(tr("Verify messages to ensure they were signed with specified Azart addresses"));
 
-    openInfoAction = new QAction(QApplication::style()->standardIcon(QStyle::SP_MessageBoxInformation), tr("&Information"), this);
+    openInfoAction = new QAction(QIcon(":/icons/" + theme + "/info"), tr("&Information"), this);
     openInfoAction->setStatusTip(tr("Show diagnostic information"));
     openRPCConsoleAction = new QAction(QIcon(":/icons/" + theme + "/debugwindow"), tr("&Debug console"), this);
     openRPCConsoleAction->setStatusTip(tr("Open debugging console"));
@@ -431,14 +431,14 @@ void BitcoinGUI::createActions()
     usedReceivingAddressesAction = new QAction(QIcon(":/icons/" + theme + "/address-book"), tr("&Receiving addresses..."), this);
     usedReceivingAddressesAction->setStatusTip(tr("Show the list of used receiving addresses and labels"));
 
-    openAction = new QAction(QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon), tr("Open &URI..."), this);
-    openAction->setStatusTip(tr("Open a dash: URI or payment request"));
+    openAction = new QAction(QIcon(":/icons/" + theme + "/browse"), tr("Open &URI..."), this);
+    openAction->setStatusTip(tr("Open a azart: URI or payment request"));
 
-    showHelpMessageAction = new QAction(QApplication::style()->standardIcon(QStyle::SP_MessageBoxInformation), tr("&Command-line options"), this);
+    showHelpMessageAction = new QAction(QIcon(":/icons/" + theme + "/info"), tr("&Command-line options"), this);
     showHelpMessageAction->setMenuRole(QAction::NoRole);
-    showHelpMessageAction->setStatusTip(tr("Show the Dash Core help message to get a list with possible Dash Core command-line options"));
+    showHelpMessageAction->setStatusTip(tr("Show the Azart Core help message to get a list with possible Azart Core command-line options"));
 
-    showPrivateSendHelpAction = new QAction(QApplication::style()->standardIcon(QStyle::SP_MessageBoxInformation), tr("&PrivateSend information"), this);
+    showPrivateSendHelpAction = new QAction(QIcon(":/icons/" + theme + "/info"), tr("&PrivateSend information"), this);
     showPrivateSendHelpAction->setMenuRole(QAction::NoRole);
     showPrivateSendHelpAction->setStatusTip(tr("Show the PrivateSend basic information"));
 
@@ -722,7 +722,7 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
 void BitcoinGUI::createTrayIcon(const NetworkStyle *networkStyle)
 {
     trayIcon = new QSystemTrayIcon(this);
-    QString toolTip = tr("Dash Core client") + " " + networkStyle->getTitleAddText();
+    QString toolTip = tr("Azart Core client") + " " + networkStyle->getTitleAddText();
     trayIcon->setToolTip(toolTip);
     trayIcon->setIcon(networkStyle->getTrayAndWindowIcon());
     trayIcon->hide();
@@ -865,6 +865,8 @@ void BitcoinGUI::openClicked()
 
 void BitcoinGUI::gotoOverviewPage()
 {
+    //QString theme = GUIUtil::getThemeName();
+    //overviewAction->setIcon(QIcon(":/icons/" + theme + "/overview"));
     overviewAction->setChecked(true);
     if (walletFrame) walletFrame->gotoOverviewPage();
 }
@@ -922,7 +924,7 @@ void BitcoinGUI::updateNetworkState()
     }
 
     if (clientModel->getNetworkActive()) {
-        labelConnectionsIcon->setToolTip(tr("%n active connection(s) to Dash network", "", count));
+        labelConnectionsIcon->setToolTip(tr("%n active connection(s) to Azart network", "", count));
     } else {
         labelConnectionsIcon->setToolTip(tr("Network activity disabled"));
         icon = ":/icons/" + theme + "/network_disabled";
@@ -1116,7 +1118,7 @@ void BitcoinGUI::setAdditionalDataSyncProgress(double nSyncProgress)
 
 void BitcoinGUI::message(const QString &title, const QString &message, unsigned int style, bool *ret)
 {
-    QString strTitle = tr("Dash Core"); // default title
+    QString strTitle = tr("Azart Core"); // default title
     // Default to information icon
     int nMBoxIcon = QMessageBox::Information;
     int nNotifyIcon = Notificator::Information;
@@ -1142,7 +1144,7 @@ void BitcoinGUI::message(const QString &title, const QString &message, unsigned 
             break;
         }
     }
-    // Append title to "Dash Core - "
+    // Append title to "Azart Core - "
     if (!msgType.isEmpty())
         strTitle += " - " + msgType;
 

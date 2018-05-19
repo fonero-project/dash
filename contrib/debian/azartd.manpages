@@ -1,0 +1,3 @@
+debian/manpages/azartd.1
+debian/manpages/azart.conf.5
+debian/manpages/azart-cli.1

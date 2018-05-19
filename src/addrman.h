@@ -172,7 +172,7 @@ public:
 class CAddrMan
 {
 private:
-    //! critical section to protect the inner data structures
+    //! critical section to azart the inner data structures
     mutable CCriticalSection cs;
 
     //! last used nId

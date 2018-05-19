@@ -30,7 +30,7 @@ template <typename T>
 class CCheckQueue
 {
 private:
-    //! Mutex to protect the inner state
+    //! Mutex to azart the inner state
     boost::mutex mutex;
 
     //! Worker threads block on this when out of work

@@ -1,11 +1,11 @@
 Sample configuration files for:
 
-SystemD: dashd.service
-Upstart: dashd.conf
-OpenRC:  dashd.openrc
-         dashd.openrcconf
-CentOS:  dashd.init
-OS X:    org.dash.dashd.plist
+SystemD: azartd.service
+Upstart: azartd.conf
+OpenRC:  azartd.openrc
+         azartd.openrcconf
+CentOS:  azartd.init
+OS X:    org.azart.azartd.plist
 
 have been made available to assist packagers in creating node packages here.
 

@@ -5,7 +5,7 @@
 #ifndef GOVERNANCE_OBJECT_H
 #define GOVERNANCE_OBJECT_H
 
-//#define ENABLE_DASH_DEBUG
+//#define ENABLE_AZART_DEBUG
 
 #include "cachemultimap.h"
 #include "governance-exceptions.h"
@@ -125,7 +125,7 @@ public: // Types
     typedef CacheMultiMap<COutPoint, vote_time_pair_t> vote_mcache_t;
 
 private:
-    /// critical section to protect the inner data structures
+    /// critical section to azart the inner data structures
     mutable CCriticalSection cs;
 
     /// Object typecode

@@ -5,7 +5,7 @@
 #ifndef GOVERNANCE_H
 #define GOVERNANCE_H
 
-//#define ENABLE_DASH_DEBUG
+//#define ENABLE_AZART_DEBUG
 
 #include "bloom.h"
 #include "cachemap.h"
@@ -285,7 +285,7 @@ private:
     };
 
 public:
-    // critical section to protect the inner data structures
+    // critical section to azart the inner data structures
     mutable CCriticalSection cs;
 
     CGovernanceManager();

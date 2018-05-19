@@ -1,8 +1,8 @@
-Source: dash
+Source: azart
 Section: utils
 Priority: optional
-Maintainer: Holger Schinzel <holger@dash.org>
-Uploaders: Holger Schinzel <holger@dash.org>
+Maintainer: Azart Dev <dev@azartpay.com>
+Uploaders: Azart Dev <dev@azartpay.com>
 Build-Depends: debhelper,
  devscripts,
  automake,
@@ -24,45 +24,45 @@ Build-Depends: debhelper,
  libprotobuf-dev, protobuf-compiler,
  python
 Standards-Version: 3.9.2
-Homepage: https://www.dash.org/
-Vcs-Git: git://github.com/dashpay/dash.git
-Vcs-Browser: https://github.com/dashpay/dash
+Homepage: https://azartpay.com/
+Vcs-Git: git://github.com/azartpay/azart.git
+Vcs-Browser: https://github.com/azartpay/azart
 
-Package: dashd
+Package: azartd
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: peer-to-peer network based digital currency - daemon
- Dash is an experimental new digital currency that enables anonymous, instant
- payments to anyone, anywhere in the world. Dash uses peer-to-peer
+ Azart is an experimental new digital currency that enables anonymous, instant
+ payments to anyone, anywhere in the world. Azart uses peer-to-peer
  technology to operate with no central authority: managing transactions
- and issuing money are carried out collectively by the network. Dash Core
+ and issuing money are carried out collectively by the network. Azart Core
  is the name of the open source software which enables the use of this currency.
  .
- This package provides the daemon, dashd, and the CLI tool
- dash-cli to interact with the daemon.
+ This package provides the daemon, azartd, and the CLI tool
+ azart-cli to interact with the daemon.
 
-Package: dash-qt
+Package: azart-qt
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: peer-to-peer network based digital currency - Qt GUI
- Dash is an experimental new digital currency that enables anonymous, instant
- payments to anyone, anywhere in the world. Dash uses peer-to-peer
+ Azart is an experimental new digital currency that enables anonymous, instant
+ payments to anyone, anywhere in the world. Azart uses peer-to-peer
  technology to operate with no central authority: managing transactions
- and issuing money are carried out collectively by the network. Dash Core
+ and issuing money are carried out collectively by the network. Azart Core
  is the name of the open source software which enables the use of this currency.
  .
- This package provides Dash-Qt, a GUI for Dash based on Qt.
+ This package provides Azart-Qt, a GUI for Azart based on Qt.
 
-Package: dash-tx
+Package: azart-tx
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: peer-to-peer digital currency - standalone transaction tool
- Dash is an experimental new digital currency that enables anonymous, instant
- payments to anyone, anywhere in the world. Dash uses peer-to-peer
+ Azart is an experimental new digital currency that enables anonymous, instant
+ payments to anyone, anywhere in the world. Azart uses peer-to-peer
  technology to operate with no central authority: managing transactions
- and issuing money are carried out collectively by the network. Dash Core
+ and issuing money are carried out collectively by the network. Azart Core
  is the name of the open source software which enables the use of this currency.
  .
- This package provides dash-tx, a command-line transaction creation
- tool which can be used without a dash daemon.  Some means of
+ This package provides azart-tx, a command-line transaction creation
+ tool which can be used without a azart daemon.  Some means of
  exchanging minimal transaction data with peers is still required.

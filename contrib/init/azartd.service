@@ -1,0 +1,22 @@
+[Unit]
+Description=Azart's distributed currency daemon
+After=network.target
+
+[Service]
+User=azartcore
+Group=azartcore
+
+Type=forking
+PIDFile=/var/lib/azartd/azartd.pid
+ExecStart=/usr/bin/azartd -daemon -pid=/var/lib/azartd/azartd.pid \
+-conf=/etc/azartcore/azart.conf -datadir=/var/lib/azartd -disablewallet
+
+Restart=always
+PrivateTmp=true
+TimeoutStopSec=60s
+TimeoutStartSec=2s
+StartLimitInterval=120s
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target

@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/dash-config.h"
+#include "config/azart-config.h"
 #endif
 
 #include "optionsdialog.h"
@@ -92,11 +92,7 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
     }
     
     /* Theme selector */
-    ui->theme->addItem(QString("DASH-light"), QVariant("light"));
-    ui->theme->addItem(QString("DASH-light-hires"), QVariant("light-hires"));
-    ui->theme->addItem(QString("DASH-blue"), QVariant("drkblue"));
-    ui->theme->addItem(QString("DASH-Crownium"), QVariant("crownium"));
-    ui->theme->addItem(QString("DASH-traditional"), QVariant("trad"));
+    ui->theme->addItem(QString("AZART-default"), QVariant("default"));
     
     /* Language selector */
     QDir translations(":translations");

@@ -655,7 +655,7 @@ private:
 public:
     /*
      * Main wallet lock.
-     * This lock protects all the fields added by CWallet
+     * This lock azarts all the fields added by CWallet
      *   except for:
      *      fFileBacked (immutable after instantiation)
      *      strWalletFile (immutable after instantiation)
@@ -772,7 +772,7 @@ public:
 
     bool SelectCoinsGrouppedByAddresses(std::vector<CompactTallyItem>& vecTallyRet, bool fSkipDenominated = true, bool fAnonymizable = true, bool fSkipUnconfirmed = true) const;
 
-    /// Get 1000DASH output and keys which can be used for the Masternode
+    /// Get 1000 AZART output and keys which can be used for the Masternode
     bool GetMasternodeOutpointAndKeys(COutPoint& outpointRet, CPubKey& pubKeyRet, CKey& keyRet, std::string strTxHash = "", std::string strOutputIndex = "");
     /// Extract txin information and keys from output
     bool GetOutpointAndKeysFromOutput(const COutput& out, COutPoint& outpointRet, CPubKey& pubKeyRet, CKey& keyRet);

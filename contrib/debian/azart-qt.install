@@ -1,0 +1,6 @@
+usr/local/bin/azart-qt usr/bin
+share/pixmaps/azart32.xpm usr/share/pixmaps
+share/pixmaps/azart16.xpm usr/share/pixmaps
+share/pixmaps/azart128.png usr/share/pixmaps
+debian/azart-qt.desktop usr/share/applications
+debian/azart-qt.protocol usr/share/kde4/services/

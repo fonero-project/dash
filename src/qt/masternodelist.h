@@ -57,10 +57,10 @@ private:
     ClientModel *clientModel;
     WalletModel *walletModel;
 
-    // Protects tableWidgetMasternodes
+    // Azarts tableWidgetMasternodes
     CCriticalSection cs_mnlist;
 
-    // Protects tableWidgetMyMasternodes
+    // Azarts tableWidgetMyMasternodes
     CCriticalSection cs_mymnlist;
 
     QString strCurrentFilter;

@@ -42,7 +42,7 @@ private:
     static const int MNB_RECOVERY_RETRY_SECONDS     = 3 * 60 * 60;
 
 
-    // critical section to protect the inner data structures
+    // critical section to azart the inner data structures
     mutable CCriticalSection cs;
 
     // Keep track of current block height

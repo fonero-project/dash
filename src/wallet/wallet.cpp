@@ -1357,7 +1357,7 @@ bool CWallet::IsChange(const CTxOut& txout) const
     // TODO: fix handling of 'change' outputs. The assumption is that any
     // payment to a script that is ours, but is not in the address book
     // is change. That assumption is likely to break when we implement multisignature
-    // wallets that return change back into a multi-signature-protected address;
+    // wallets that return change back into a multi-signature-azarted address;
     // a better way of identifying which outputs are 'the send' and which are
     // 'the change' will need to be implemented (maybe extend CWalletTx to remember
     // which output, if any, was change).
@@ -2760,10 +2760,10 @@ bool CWallet::SelectCoinsByDenominations(int nDenom, CAmount nValueMin, CAmount 
     std::random_shuffle(vCoins.rbegin(), vCoins.rend(), GetRandInt);
 
     // ( bit on if present )
-    // bit 0 - 100DASH+1
-    // bit 1 - 10DASH+1
-    // bit 2 - 1DASH+1
-    // bit 3 - .1DASH+1
+    // bit 0 - 100 AZART+1
+    // bit 1 - 10 AZART+1
+    // bit 2 - 1 AZART+1
+    // bit 3 - .1 AZART+1
 
     std::vector<int> vecBits;
     if (!CPrivateSend::GetDenominationsBits(nDenom, vecBits)) {
@@ -3282,7 +3282,7 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
                     return false;
                 }
                 if (fUseInstantSend && nValueIn > sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)*COIN) {
-                    strFailReason += " " + strprintf(_("InstantSend doesn't support sending values that high yet. Transactions are currently limited to %1 DASH."), sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE));
+                    strFailReason += " " + strprintf(_("InstantSend doesn't support sending values that high yet. Transactions are currently limited to %1 AZART."), sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE));
                     return false;
                 }
 
@@ -3316,7 +3316,7 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
 
                         // Fill a vout to ourself
                         // TODO: pass in scriptChange instead of reservekey so
-                        // change transaction isn't always pay-to-dash-address
+                        // change transaction isn't always pay-to-azart-address
                         CScript scriptChange;
 
                         // coin control: send change to custom address

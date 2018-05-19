@@ -45,7 +45,7 @@
 using namespace std;
 
 #if defined(NDEBUG)
-# error "Dash Core cannot be compiled without assertions."
+# error "Azart Core cannot be compiled without assertions."
 #endif
 
 int64_t nTimeBestReceived = 0; // Used only to inform the wallet of when we last received a block
@@ -704,7 +704,7 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
         return mapBlockIndex.count(inv.hash);
 
     /* 
-        Dash Related Inventory Messages
+        Azart Related Inventory Messages
 
         --
 
@@ -1383,7 +1383,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             if (inv.type == MSG_BLOCK) {
                 UpdateBlockAvailability(pfrom->GetId(), inv.hash);
                 if (!fAlreadyHave && !fImporting && !fReindex && !mapBlocksInFlight.count(inv.hash)) {
-                    if (chainparams.DelayGetHeadersTime() != 0 && pindexBestHeader->GetBlockTime() < GetAdjustedTime() - chainparams.DelayGetHeadersTime()) {
+                    if (false & chainparams.DelayGetHeadersTime() != 0 && pindexBestHeader->GetBlockTime() < GetAdjustedTime() - chainparams.DelayGetHeadersTime()) {
                         // We are pretty far from being completely synced at the moment. If we would initiate a new
                         // chain of GETHEADERS/HEADERS now, we may end up downnloading the full chain from multiple
                         // peers at the same time, slowing down the initial sync. At the same time, we don't know
@@ -2565,7 +2565,7 @@ bool SendMessages(CNode* pto, CConnman& connman, std::atomic<bool>& interruptMsg
                 if (inv.type == MSG_TX && pto->filterInventoryKnown.contains(inv.hash))
                     continue;
 
-                // trickle out tx inv to protect privacy
+                // trickle out tx inv to azart privacy
                 if (inv.type == MSG_TX && !fSendTrickle)
                 {
                     // 1/4 of tx invs blast to all immediately

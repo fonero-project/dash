@@ -1,0 +1,67 @@
+#!/bin/bash
+#
+#  azartd The Azart Core server.
+#
+#
+# chkconfig: 345 80 20
+# description: azartd
+# processname: azartd
+#
+
+# Source function library.
+. /etc/init.d/functions
+
+# you can override defaults in /etc/sysconfig/azartd, see below
+if [ -f /etc/sysconfig/azartd ]; then
+        . /etc/sysconfig/azartd
+fi
+
+RETVAL=0
+
+prog=azartd
+# you can override the lockfile via BITCOIND_LOCKFILE in /etc/sysconfig/azartd
+lockfile=${BITCOIND_LOCKFILE-/var/lock/subsys/azartd}
+
+# azartd defaults to /usr/bin/azartd, override with BITCOIND_BIN
+azartd=${BITCOIND_BIN-/usr/bin/azartd}
+
+# azartd opts default to -disablewallet, override with BITCOIND_OPTS
+azartd_opts=${BITCOIND_OPTS--disablewallet}
+
+start() {
+    echo -n $"Starting $prog: "
+    daemon $DAEMONOPTS $azartd $azartd_opts
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch $lockfile
+    return $RETVAL
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc $prog
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lockfile
+    return $RETVAL
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status $prog
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: service $prog {start|stop|status|restart}"
+        exit 1
+        ;;
+esac

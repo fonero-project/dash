@@ -12,7 +12,7 @@
 #define BITCOIN_UTIL_H
 
 #if defined(HAVE_CONFIG_H)
-#include "config/dash-config.h"
+#include "config/azart-config.h"
 #endif
 
 #include "compat.h"
@@ -34,14 +34,14 @@
 
 // Uncomment the following line to enable debugging messages
 // or enable on a per file basis prior to inclusion of util.h
-//#define ENABLE_DASH_DEBUG
-#ifdef ENABLE_DASH_DEBUG
+//#define ENABLE_AZART_DEBUG
+#ifdef ENABLE_AZART_DEBUG
 #define DBG( x ) x
 #else
 #define DBG( x ) 
 #endif
 
-//Dash only features
+//Azart only features
 
 extern bool fMasterNode;
 extern bool fLiteMode;
@@ -248,7 +248,7 @@ std::string GetThreadName();
  */
 template <typename Callable> void TraceThread(const char* name,  Callable func)
 {
-    std::string s = strprintf("dash-%s", name);
+    std::string s = strprintf("azart-%s", name);
     RenameThread(s.c_str());
     try
     {
