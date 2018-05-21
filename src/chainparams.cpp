@@ -316,7 +316,7 @@ public:
         consensus.nMajorityRejectBlockOutdated = 950;
         consensus.nMajorityWindow = 1000;
         consensus.BIP34Height = -1; // BIP34 has not necessarily activated on regtest
-        consensus.BIP34Hash = uint256();
+        consensus.BIP34Hash = uint256S("0x00");
         consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 240; // 24 * 60 * 60; // Azart: 1 day
         consensus.nPowTargetSpacing = 120; // 2.5 * 60; // Azart: 2.5 minutes
