@@ -75,7 +75,7 @@ public:
         consensus.nSubsidyHalvingInterval = 262537200; 
         consensus.nMasternodePaymentsStartBlock = 1000; 
         consensus.nMasternodePaymentsIncreaseBlock = 262537200; 
-        consensus.nMasternodePaymentsIncreasePeriod = 262537200;
+        consensus.nMasternodePaymentsIncreasePeriod = 262537200; //576*30;
         consensus.nInstantSendKeepLock = 24;
         consensus.nBudgetPaymentsStartBlock = 64800; 
         consensus.nBudgetPaymentsCycleBlocks = 21600; 
@@ -92,8 +92,8 @@ public:
         consensus.BIP34Height = 1;
         consensus.BIP34Hash = uint256S("0x00"); //uint256S("0x000007d91d1254d60e2dd1ae580383070a4ddffa4c64c2eeb4a2f9ecc0414343");
         consensus.powLimit = uint256S("00000fffff000000000000000000000000000000000000000000000000000000");
-        consensus.nPowTargetTimespan = 240; // 240 // Azart: 1 minute
-        consensus.nPowTargetSpacing = 120; // 2 * 60; // Azart: 2 minutes
+        consensus.nPowTargetTimespan = 240; // 4*60; // Azart: 4 minute
+        consensus.nPowTargetSpacing = 120; // 2*60; // Azart: 2 minutes
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         consensus.nPowKGWHeight = 0; // 15200;
