@@ -1,4 +1,4 @@
-Azart Core staging tree 0.12.2.3
+Azart Core staging tree 0.12.3.0
 ===============================
 
 Official site: https://azartpay.com  
