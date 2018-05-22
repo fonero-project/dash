@@ -141,8 +141,10 @@ public:
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock == uint256S("0x000009b9903dae4466d48db6c264d711ac554492da34cd0bfa4c0b6d230f29c9"));
         assert(genesis.hashMerkleRoot == uint256S("0x44701bbc011bdd471b75fa83e42acc8e067759a69cdeef723df57181a33e5467"));
-
-        vSeeds.clear();
+	    
+        vSeeds.push_back(CDNSSeedData("dnsseed-1", "dnsseed-1.azartpay.com"));
+        vSeeds.push_back(CDNSSeedData("dnsseed-2", "dnsseed-2.azartpay.com"));
+        //vSeeds.clear();
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,24);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,25);
