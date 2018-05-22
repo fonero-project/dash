@@ -74,8 +74,8 @@ public:
         strNetworkID = "main";
         consensus.nSubsidyHalvingInterval = 262537200; 
         consensus.nMasternodePaymentsStartBlock = 1000; 
-        consensus.nMasternodePaymentsIncreaseBlock = 262537200; 
-        consensus.nMasternodePaymentsIncreasePeriod = 262537200; //576*30;
+        consensus.nMasternodePaymentsIncreaseBlock = 2150; 
+        consensus.nMasternodePaymentsIncreasePeriod = 576*30;
         consensus.nInstantSendKeepLock = 24;
         consensus.nBudgetPaymentsStartBlock = 64800; 
         consensus.nBudgetPaymentsCycleBlocks = 21600; 
@@ -90,7 +90,7 @@ public:
         consensus.nMajorityRejectBlockOutdated = 950;
         consensus.nMajorityWindow = 1000;
         consensus.BIP34Height = 1;
-        consensus.BIP34Hash = uint256S("0x00"); //uint256S("0x000007d91d1254d60e2dd1ae580383070a4ddffa4c64c2eeb4a2f9ecc0414343");
+        consensus.BIP34Hash = uint256S("0x00000fc61990517d4e68d9c1a67928ed83bfbca7d63b1482af5114e756f9a88e");
         consensus.powLimit = uint256S("00000fffff000000000000000000000000000000000000000000000000000000");
         consensus.nPowTargetTimespan = 240; // 4*60; // Azart: 4 minute
         consensus.nPowTargetSpacing = 120; // 2*60; // Azart: 2 minutes
