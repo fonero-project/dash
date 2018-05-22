@@ -268,7 +268,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int nBlockH
 
     CScript payee;
 
-    if(!GetBlockPayee(nBlockHeight, payee)) {
+    if(!mnpayments.GetBlockPayee(nBlockHeight, payee)) {
         // no masternode detected...
         int nCount = 0;
         masternode_info_t mnInfo;
