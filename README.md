@@ -4,6 +4,8 @@ Azart Core staging tree 0.12.3.1
 Official site: https://azartpay.com  
 Block explorer: https://explorer.azartpay.com  
 White paper: [whitepaper.pdf](https://github.com/azartpay/azart/blob/master/azart-docs/whitepaper.pdf)
+Exchange: https://crex24.com/exchange/AZART-BTC  
+Sentinel: https://github.com/azartpay/azart-sentinel  
 
 License
 -------
