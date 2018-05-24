@@ -5,7 +5,7 @@ Official site: https://azartpay.com
 Block explorer: https://explorer.azartpay.com  
 White paper: [whitepaper.pdf](https://github.com/azartpay/azart/blob/master/azart-docs/whitepaper.pdf)  
 Sentinel: https://github.com/azartpay/azart-sentinel  
-Exchanges:
+Exchanges:  
   crex24: https://crex24.com/exchange/AZART-BTC  
 
 License
