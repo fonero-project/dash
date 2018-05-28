@@ -59,6 +59,7 @@ not straightforward.
 
 ### MacOS SDK
 
-git clone https://github.com/phracker/MacOSX-SDKs  
-cd MacOSX-SDKs  
-./make_tarballs.sh  
+cd depends  
+wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz  
+tar vxf MacOSX10.11.sdk.tar.xz  
+make HOST=x86_64-apple-darwin11 SDK_PATH=$PWD -j8  
