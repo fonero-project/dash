@@ -627,14 +627,17 @@ boost::filesystem::path GetMasternodeConfigFile()
 void ReadConfigFile(map<string, string>& mapSettingsRet,
                     map<string, vector<string> >& mapMultiSettingsRet)
 {
-    boost::filesystem::ifstream streamConfig(GetConfigFile());
-    if (!streamConfig.good()){
+    if (!boost::filesystem::exists(GetConfigFile())){
         // Create empty azart.conf if it does not excist
         FILE* configFile = fopen(GetConfigFile().string().c_str(), "a");
         if (configFile != NULL) {
             fputs("addnode=5.9.6.17:9799\naddnode=5.9.73.81:9799\naddnode=176.9.121.219:9799\naddnode=176.9.70.106:9799\naddnode=80.87.197.195:9799\n", configFile);
             fclose(configFile);
 	}
+    }
+
+    boost::filesystem::ifstream streamConfig(GetConfigFile());
+    if (!streamConfig.good()){
         return; // Nothing to read, so just return
     }
 
