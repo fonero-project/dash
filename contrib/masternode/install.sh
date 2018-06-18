@@ -37,6 +37,7 @@ masternodekey=$(./azart-cli masternode genkey)
 sleep 3
 echo -e "\ndaemon=1\nmaxconnections=256\nmasternode=1\nmasternodeprivkey=$masternodekey" >> "/root/.azartcore/azart.conf"
 sleep 3
+sudo sed -i -e "s/exit 0/sudo \-u root \/opt\/azart-core\/azartd \> \/dev\/null \&\nexit 0/g" /etc/rc.local
 ./azartd -daemon
 echo "Masternode private key: $masternodekey"
 echo "Job completed successfully"
