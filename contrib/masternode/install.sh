@@ -47,7 +47,7 @@ sleep 10
 masternodekey=$(./azart-cli masternode genkey)
 ./azart-cli stop
 sleep 3
-echo -e "\nmaxconnections=256\nmasternode=1\nmasternodeprivkey=$masternodekey" >> $azartcoredir"azart.conf"
+echo -e "\ndaemon=1\nmaxconnections=256\nmasternode=1\nmasternodeprivkey=$masternodekey" >> $azartcoredir"azart.conf"
 sleep 3
 ./azartd -daemon
 echo "Masternode private key: $masternodekey"
