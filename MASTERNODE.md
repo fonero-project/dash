@@ -14,7 +14,7 @@ This is a complete guide to setting up a Masternode for Azart Coin. The method e
 - Next, get the Azart auto install script by copying the entire command below:
 
 ```bash
-wget https://raw.githubusercontent.com/azartpay/azart/master/masternode.sh
+wget https://raw.githubusercontent.com/azartpay/azart/master/contrib/masternode/install.sh
 ```
 
 Go to Putty and paste (right click mouse button) and hit Enter
@@ -22,13 +22,13 @@ Go to Putty and paste (right click mouse button) and hit Enter
 Type the command below after gotten the auto install script:
 
 ```bash
-chmod -R 755 masternode.sh
+chmod -R 755 install.sh
 ```
 
 Then execute the command below:
 
 ```bash
-./masternode.sh
+./install.sh
 ```
 
 - Wait for around 30 minutes - 1 hour time for installation to complete
