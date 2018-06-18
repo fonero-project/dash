@@ -24,7 +24,7 @@ cd
 basedir="/opt"
 azartdir=$basedir"/azart/"
 azartcoredir=$basedir"/.azartcore/"
-mkdir $azartdir
+sudo mkdir $azartdir
 cd $azartdir
 wget https://github.com/azartpay/azart/releases/download/0.12.3.3/azart-0.12.3.3-linux-x64.tgz
 tar -xvf azart-0.12.3.3-linux-x64.tgz
