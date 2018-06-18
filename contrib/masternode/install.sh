@@ -19,7 +19,7 @@ sudo apt-get install libzmq3-dev libminiupnpc-dev libssl-dev libevent-dev -y
 sudo add-apt-repository ppa:bitcoin/bitcoin -y
 sudo apt-get update -y
 sudo apt-get install libdb4.8-dev libdb4.8++-dev -y
-apt-get -y install python-virtualenv
+sudo apt-get -y install python-virtualenv
 cd
 basedir="/opt"
 azartdir=$basedir"/azart/"
@@ -43,7 +43,7 @@ sleep 10
 masternodekey=$(./azart-cli masternode genkey)
 ./azart-cli stop
 sleep 1
-echo -e "maxconnections=256\nmasternode=1\nmasternodeprivkey=$masternodekey" >> $azartcoredir"azart.conf"
+echo -e "\nmaxconnections=256\nmasternode=1\nmasternodeprivkey=$masternodekey" >> $azartcoredir"azart.conf"
 sleep 1
 ./azartd -daemon
 echo "Masternode private key: $masternodekey"
