@@ -73,6 +73,6 @@ You are all done & wait for your first reward (around 24 hours time)!
 *If there is a need to re-start the masternode, you can run the following:-
 
 ```bash
-/root/azart/infinexd -daemon
+/root/azart/azartd -daemon
 ```
  
