@@ -58,7 +58,9 @@ Then execute the command below:
 - Next, you can either type "%appdata%" on a windows file explorer or Click Tools -> open masternode config file from your wallet
 - Fill in a new line with the template as below:
 
+```bash
 Masternode-Alias[space]VPS-IP-address:9799[space]private-key-from-vps[space]transaction-id[space]output-index
+```
 
 - Save & close
 - Close Windows wallet & open again
