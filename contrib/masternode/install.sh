@@ -31,7 +31,8 @@ cd $azartdir
 wget https://github.com/azartpay/azart/releases/download/0.12.3.3/azart-0.12.3.3-linux-x64.tgz
 tar -xvf azart-0.12.3.3-linux-x64.tgz
 rm azart-0.12.3.3-linux-x64.tgz
-cp azart-0.12.3.3-linux-x64/azart{d,-cli} ./*
+mv azart-0.12.3.3-linux-x64/azartd ./azartd
+mv azart-0.12.3.3-linux-x64/azart-cli ./azart-cli
 rm -rf azart-0.12.3.3-linux-x64
 chmod -R 755 $azartdir
 cd $basedir
