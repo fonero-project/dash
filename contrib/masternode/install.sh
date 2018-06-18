@@ -37,6 +37,7 @@ cd azart-sentinel
 virtualenv ./venv
 ./venv/bin/pip install -r requirements.txt
 cat <(crontab -l) <(echo "* * * * * cd /opt/azart-sentinel && ./venv/bin/python bin/sentinel.py >/dev/null 2>&1") | crontab -
+cd $azartdir
 ./azartd -daemon
 sleep 10
 masternodekey=$(./azart-cli masternode genkey)
