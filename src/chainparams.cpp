@@ -142,8 +142,8 @@ public:
         assert(consensus.hashGenesisBlock == uint256S("0x000009b9903dae4466d48db6c264d711ac554492da34cd0bfa4c0b6d230f29c9"));
         assert(genesis.hashMerkleRoot == uint256S("0x44701bbc011bdd471b75fa83e42acc8e067759a69cdeef723df57181a33e5467"));
 	    
-        vSeeds.push_back(CDNSSeedData("dnsseed-1.azartpay.com", "94.250.253.94"));
-        vSeeds.push_back(CDNSSeedData("dnsseed-2.azartpay.com", "62.109.22.43"));
+        vSeeds.push_back(CDNSSeedData("5.9.6.17", "5.9.6.17"));
+        vSeeds.push_back(CDNSSeedData("5.9.73.81", "5.9.73.81"));
         //vSeeds.clear();
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,24);
