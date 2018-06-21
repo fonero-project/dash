@@ -12,6 +12,8 @@ Azart Core staging tree 0.12.3.3
 - Sentinel: https://github.com/azartpay/azart-sentinel  
 - Masternode installer: https://github.com/azartpay/azart-masternode  
 - Masternode guide: https://github.com/azartpay/azart-masternode-guide  
+- How to setup a Masternode: https://github.com/azartpay/azart/blob/master/MASTERNODE.md
+
 
 ###### Exchanges:  
 - Crex24.com: https://crex24.com/exchange/AZART-BTC  
