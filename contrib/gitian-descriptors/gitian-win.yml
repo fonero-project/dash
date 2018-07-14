@@ -43,7 +43,7 @@ script: |
   mkdir -p ${WRAP_DIR}
   if test -n "$GBUILD_CACHE_ENABLED"; then
     export SOURCES_PATH=${GBUILD_COMMON_CACHE}
-    export BASE_CACHE=${GBUILD_PACKAGE_CACHE}
+    export BASE_CACHE=${GBUILD_PACKAGE_CACHE}/depends
     mkdir -p ${BASE_CACHE} ${SOURCES_PATH}
   fi
 
