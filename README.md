@@ -14,9 +14,11 @@ Azart Core staging tree 0.12.3.4
 - Masternode guide: https://github.com/azartpay/azart-masternode-guide  
 - How to setup a Masternode: https://github.com/azartpay/azart/blob/master/MASTERNODE.md
 
-
 ###### Exchanges:  
 - Crex24.com: https://crex24.com/exchange/AZART-BTC  
+
+###### Nodes in China
+- 200.7.111.100:9799
 
 License
 -------
