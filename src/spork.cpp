@@ -218,7 +218,7 @@ bool CSporkManager::SetPrivKey(std::string strPrivKey)
 }
 
 bool CSporkMessage::Sign(std::string strSignKey)
-{
+{   
     CKey key;
     CPubKey pubkey;
     std::string strError = "";
@@ -239,6 +239,11 @@ bool CSporkMessage::Sign(std::string strSignKey)
         return false;
     }
 
+    if (!key.IsValid()) {
+        LogPrintf("CSporkMessage::Sign -- signing key is not valid\n");
+        return false;
+    }
+    
     return true;
 }
 
