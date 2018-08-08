@@ -61,8 +61,9 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
         READWRITE(this->nVersion);
+        nVersion = this->nVersion;
         READWRITE(nCreateTime);
     }
 
@@ -73,7 +74,7 @@ public:
     }
 };
 
-/** Access to the wallet database */
+/** Access to the wallet database (wallet.dat) */
 class CWalletDB : public CDB
 {
 public:
@@ -87,7 +88,7 @@ public:
     bool WritePurpose(const std::string& strAddress, const std::string& purpose);
     bool ErasePurpose(const std::string& strAddress);
 
-    bool WriteTx(const CWalletTx& wtx);
+    bool WriteTx(uint256 hash, const CWalletTx& wtx);
     bool EraseTx(uint256 hash);
 
     bool WriteKey(const CPubKey& vchPubKey, const CPrivKey& vchPrivKey, const CKeyMetadata &keyMeta);
@@ -96,7 +97,7 @@ public:
 
     bool WriteCScript(const uint160& hash, const CScript& redeemScript);
 
-    bool WriteWatchOnly(const CScript &script, const CKeyMetadata &keymeta);
+    bool WriteWatchOnly(const CScript &script);
     bool EraseWatchOnly(const CScript &script);
 
     bool WriteBestBlock(const CBlockLocator& locator);
@@ -114,7 +115,6 @@ public:
 
     /// This writes directly to the database, and will not update the CWallet's cached accounting entries!
     /// Use wallet.AddAccountingEntry instead, to write *and* update its caches.
-    bool WriteAccountingEntry(const uint64_t nAccEntryNum, const CAccountingEntry& acentry);
     bool WriteAccountingEntry_Backend(const CAccountingEntry& acentry);
     bool ReadAccount(const std::string& strAccount, CAccount& account);
     bool WriteAccount(const std::string& strAccount, const CAccount& account);
@@ -127,10 +127,10 @@ public:
     CAmount GetAccountCreditDebit(const std::string& strAccount);
     void ListAccountCreditDebit(const std::string& strAccount, std::list<CAccountingEntry>& acentries);
 
+    DBErrors ReorderTransactions(CWallet* pwallet);
     DBErrors LoadWallet(CWallet* pwallet);
     DBErrors FindWalletTx(CWallet* pwallet, std::vector<uint256>& vTxHash, std::vector<CWalletTx>& vWtx);
     DBErrors ZapWalletTx(CWallet* pwallet, std::vector<CWalletTx>& vWtx);
-    DBErrors ZapSelectTx(CWallet* pwallet, std::vector<uint256>& vHashIn, std::vector<uint256>& vHashOut);
     static bool Recover(CDBEnv& dbenv, const std::string& filename, bool fOnlyKeys);
     static bool Recover(CDBEnv& dbenv, const std::string& filename);
 
@@ -139,13 +139,16 @@ public:
     bool WriteCryptedHDChain(const CHDChain& chain);
     bool WriteHDPubKey(const CHDPubKey& hdPubKey, const CKeyMetadata& keyMeta);
 
-    static void IncrementUpdateCounter();
-    static unsigned int GetUpdateCounter();
 private:
     CWalletDB(const CWalletDB&);
     void operator=(const CWalletDB&);
+
+    bool WriteAccountingEntry(const uint64_t nAccEntryNum, const CAccountingEntry& acentry);
 };
 
-void ThreadFlushWalletDB();
+bool BackupWallet(const CWallet& wallet, const std::string& strDest);
+void ThreadFlushWalletDB(const std::string& strFile);
+
+bool AutoBackupWallet (CWallet* wallet, std::string strWalletFile, std::string& strBackupWarning, std::string& strBackupError);
 
 #endif // BITCOIN_WALLET_WALLETDB_H

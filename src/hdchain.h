@@ -1,7 +1,7 @@
 // Copyright (c) 2014-2017 The Dash Core developers
 // Distributed under the MIT software license, see the accompanying
-#ifndef DASH_HDCHAIN_H
-#define DASH_HDCHAIN_H
+#ifndef FNO_HDCHAIN_H
+#define FNO_HDCHAIN_H
 
 #include "key.h"
 #include "sync.h"
@@ -17,7 +17,7 @@ public:
 
     ADD_SERIALIZE_METHODS;
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
     {
         READWRITE(nExternalChainCounter);
         READWRITE(nInternalChainCounter);
@@ -40,12 +40,12 @@ private:
     SecureVector vchMnemonicPassphrase;
 
     std::map<uint32_t, CHDAccount> mapAccounts;
-    // critical section to protect mapAccounts
+    // critical section to fonero mapAccounts
     mutable CCriticalSection cs_accounts;
 
 public:
 
-    CHDChain() { SetNull(); }
+    CHDChain() : nVersion(CHDChain::CURRENT_VERSION) { SetNull(); }
     CHDChain(const CHDChain& other) :
         nVersion(other.nVersion),
         id(other.id),
@@ -58,10 +58,11 @@ public:
 
     ADD_SERIALIZE_METHODS;
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
     {
         LOCK(cs_accounts);
         READWRITE(this->nVersion);
+        nVersion = this->nVersion;
         READWRITE(id);
         READWRITE(fCrypted);
         READWRITE(vchSeed);
@@ -97,7 +98,7 @@ public:
     void SetCrypted(bool fCryptedIn);
     bool IsCrypted() const;
 
-    void Debug(const std::string& strName) const;
+    void Debug(std::string strName) const;
 
     bool SetMnemonic(const SecureVector& vchMnemonic, const SecureVector& vchMnemonicPassphrase, bool fUpdateID);
     bool SetMnemonic(const SecureString& ssMnemonic, const SecureString& ssMnemonicPassphrase, bool fUpdateID);
@@ -135,9 +136,10 @@ public:
 
     ADD_SERIALIZE_METHODS;
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
     {
         READWRITE(this->nVersion);
+        nVersion = this->nVersion;
         READWRITE(extPubKey);
         READWRITE(hdchainID);
         READWRITE(nAccountIndex);
@@ -147,4 +149,4 @@ public:
     std::string GetKeyPath() const;
 };
 
-#endif // DASH_HDCHAIN_H
+#endif // FNO_HDCHAIN_H

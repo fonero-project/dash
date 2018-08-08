@@ -59,9 +59,9 @@ struct TxLessThan
 class TransactionTablePriv
 {
 public:
-    TransactionTablePriv(CWallet *_wallet, TransactionTableModel *_parent) :
-        wallet(_wallet),
-        parent(_parent)
+    TransactionTablePriv(CWallet *wallet, TransactionTableModel *parent) :
+        wallet(wallet),
+        parent(parent)
     {
     }
 
@@ -235,13 +235,13 @@ public:
     }
 };
 
-TransactionTableModel::TransactionTableModel(const PlatformStyle *_platformStyle, CWallet* _wallet, WalletModel *parent):
+TransactionTableModel::TransactionTableModel(const PlatformStyle *platformStyle, CWallet* wallet, WalletModel *parent):
         QAbstractTableModel(parent),
-        wallet(_wallet),
+        wallet(wallet),
         walletModel(parent),
-        priv(new TransactionTablePriv(_wallet, this)),
+        priv(new TransactionTablePriv(wallet, this)),
         fProcessingQueuedTransactions(false),
-        platformStyle(_platformStyle)
+        platformStyle(platformStyle)
 {
     columns << QString() << QString() << tr("Date") << tr("Type") << tr("Address / Label") << BitcoinUnits::getAmountColumnTitle(walletModel->getOptionsModel()->getDisplayUnit());
     priv->refreshWallet();
@@ -738,8 +738,8 @@ struct TransactionNotification
 {
 public:
     TransactionNotification() {}
-    TransactionNotification(uint256 _hash, ChangeType _status, bool _showTransaction):
-        hash(_hash), status(_status), showTransaction(_showTransaction) {}
+    TransactionNotification(uint256 hash, ChangeType status, bool showTransaction):
+        hash(hash), status(status), showTransaction(showTransaction) {}
 
     void invoke(QObject *ttm)
     {

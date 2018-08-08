@@ -12,7 +12,7 @@
 
 #include "primitives/transaction.h"
 #include "init.h"
-#include "policy/policy.h"
+#include "validation.h" // For minRelayTxFee
 #include "protocol.h"
 #include "script/script.h"
 #include "script/standard.h"
@@ -109,23 +109,6 @@ QFont fixedPitchFont()
 #endif
 }
 
-// Just some dummy data to generate an convincing random-looking (but consistent) address
-static const uint8_t dummydata[] = {0xeb,0x15,0x23,0x1d,0xfc,0xeb,0x60,0x92,0x58,0x86,0xb6,0x7d,0x06,0x52,0x99,0x92,0x59,0x15,0xae,0xb1,0x72,0xc0,0x66,0x47};
-
-// Generate a dummy address with invalid CRC, starting with the network prefix.
-static std::string DummyAddress(const CChainParams &params)
-{
-    std::vector<unsigned char> sourcedata = params.Base58Prefix(CChainParams::PUBKEY_ADDRESS);
-    sourcedata.insert(sourcedata.end(), dummydata, dummydata + sizeof(dummydata));
-    for(int i=0; i<256; ++i) { // Try every trailing byte
-        std::string s = EncodeBase58(sourcedata.data(), sourcedata.data() + sourcedata.size());
-        if (!CBitcoinAddress(s).IsValid())
-            return s;
-        sourcedata[sourcedata.size()-1] += 1;
-    }
-    return "";
-}
-
 void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent)
 {
     parent->setFocusProxy(widget);
@@ -134,8 +117,7 @@ void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent)
 #if QT_VERSION >= 0x040700
     // We don't want translators to use own addresses in translations
     // and this is the only place, where this address is supplied.
-    widget->setPlaceholderText(QObject::tr("Enter a Dash address (e.g. %1)").arg(
-        QString::fromStdString(DummyAddress(Params()))));
+    widget->setPlaceholderText(QObject::tr("Enter a Fonero address (e.g. %1)").arg("XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg"));
 #endif
     widget->setValidator(new BitcoinAddressEntryValidator(parent));
     widget->setCheckValidator(new BitcoinAddressCheckValidator(parent));
@@ -152,8 +134,8 @@ void setupAmountWidget(QLineEdit *widget, QWidget *parent)
 
 bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
 {
-    // return if URI is not valid or is no dash: URI
-    if(!uri.isValid() || uri.scheme() != QString("dash"))
+    // return if URI is not valid or is no fonero: URI
+    if(!uri.isValid() || uri.scheme() != QString("fonero"))
         return false;
 
     SendCoinsRecipient rv;
@@ -202,7 +184,7 @@ bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
         {
             if(!i->second.isEmpty())
             {
-                if(!BitcoinUnits::parse(BitcoinUnits::DASH, i->second, &rv.amount))
+                if(!BitcoinUnits::parse(BitcoinUnits::FNO, i->second, &rv.amount))
                 {
                     return false;
                 }
@@ -222,13 +204,13 @@ bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
 
 bool parseBitcoinURI(QString uri, SendCoinsRecipient *out)
 {
-    // Convert dash:// to dash:
+    // Convert fonero:// to fonero:
     //
-    //    Cannot handle this later, because dash:// will cause Qt to see the part after // as host,
+    //    Cannot handle this later, because fonero:// will cause Qt to see the part after // as host,
     //    which will lower-case it (and thus invalidate the address).
-    if(uri.startsWith("dash://", Qt::CaseInsensitive))
+    if(uri.startsWith("fonero://", Qt::CaseInsensitive))
     {
-        uri.replace(0, 7, "dash:");
+        uri.replace(0, 7, "fonero:");
     }
     QUrl uriInstance(uri);
     return parseBitcoinURI(uriInstance, out);
@@ -236,12 +218,12 @@ bool parseBitcoinURI(QString uri, SendCoinsRecipient *out)
 
 QString formatBitcoinURI(const SendCoinsRecipient &info)
 {
-    QString ret = QString("dash:%1").arg(info.address);
+    QString ret = QString("fonero:%1").arg(info.address);
     int paramCount = 0;
 
     if (info.amount)
     {
-        ret += QString("?amount=%1").arg(BitcoinUnits::format(BitcoinUnits::DASH, info.amount, false, BitcoinUnits::separatorNever));
+        ret += QString("?amount=%1").arg(BitcoinUnits::format(BitcoinUnits::FNO, info.amount, false, BitcoinUnits::separatorNever));
         paramCount++;
     }
 
@@ -273,7 +255,7 @@ bool isDust(const QString& address, const CAmount& amount)
     CTxDestination dest = CBitcoinAddress(address.toStdString()).Get();
     CScript script = GetScriptForDestination(dest);
     CTxOut txOut(amount, script);
-    return txOut.IsDust(dustRelayFee);
+    return txOut.IsDust(::minRelayTxFee);
 }
 
 QString HtmlEscape(const QString& str, bool fMultiLine)
@@ -440,9 +422,9 @@ void openDebugLogfile()
 
 void openConfigfile()
 {
-    boost::filesystem::path pathConfig = GetConfigFile(GetArg("-conf", BITCOIN_CONF_FILENAME));
+    boost::filesystem::path pathConfig = GetConfigFile();
 
-    /* Open dash.conf with the associated application */
+    /* Open fonero.conf with the associated application */
     if (boost::filesystem::exists(pathConfig))
         QDesktopServices::openUrl(QUrl::fromLocalFile(boostPathToQString(pathConfig)));
 }
@@ -501,9 +483,9 @@ void SubstituteFonts(const QString& language)
 #endif
 }
 
-ToolTipToRichTextFilter::ToolTipToRichTextFilter(int _size_threshold, QObject *parent) :
+ToolTipToRichTextFilter::ToolTipToRichTextFilter(int size_threshold, QObject *parent) :
     QObject(parent),
-    size_threshold(_size_threshold)
+    size_threshold(size_threshold)
 {
 
 }
@@ -583,7 +565,7 @@ int TableViewLastColumnResizingFixer::getAvailableWidthForColumn(int column)
     return nResult;
 }
 
-// Make sure we don't make the columns wider than the table's viewport width.
+// Make sure we don't make the columns wider than the tables viewport width.
 void TableViewLastColumnResizingFixer::adjustTableColumnsWidth()
 {
     disconnectViewHeadersSignals();
@@ -617,7 +599,7 @@ void TableViewLastColumnResizingFixer::on_sectionResized(int logicalIndex, int o
     }
 }
 
-// When the table's geometry is ready, we manually perform the stretch of the "Message" column,
+// When the tabless geometry is ready, we manually perform the stretch of the "Message" column,
 // as the "Stretch" resize mode does not allow for interactive resizing.
 void TableViewLastColumnResizingFixer::on_geometriesChanged()
 {
@@ -652,15 +634,15 @@ boost::filesystem::path static StartupShortcutPath()
 {
     std::string chain = ChainNameFromCommandLine();
     if (chain == CBaseChainParams::MAIN)
-        return GetSpecialFolderPath(CSIDL_STARTUP) / "Dash Core.lnk";
+        return GetSpecialFolderPath(CSIDL_STARTUP) / "Fonero Core.lnk";
     if (chain == CBaseChainParams::TESTNET) // Remove this special case when CBaseChainParams::TESTNET = "testnet4"
-        return GetSpecialFolderPath(CSIDL_STARTUP) / "Dash Core (testnet).lnk";
-    return GetSpecialFolderPath(CSIDL_STARTUP) / strprintf("Dash Core (%s).lnk", chain);
+        return GetSpecialFolderPath(CSIDL_STARTUP) / "Fonero Core (testnet).lnk";
+    return GetSpecialFolderPath(CSIDL_STARTUP) / strprintf("Fonero Core (%s).lnk", chain);
 }
 
 bool GetStartOnSystemStartup()
 {
-    // check for "Dash Core*.lnk"
+    // check for "Fonero Core*.lnk"
     return boost::filesystem::exists(StartupShortcutPath());
 }
 
@@ -752,8 +734,8 @@ boost::filesystem::path static GetAutostartFilePath()
 {
     std::string chain = ChainNameFromCommandLine();
     if (chain == CBaseChainParams::MAIN)
-        return GetAutostartDir() / "dashcore.desktop";
-    return GetAutostartDir() / strprintf("dashcore-%s.lnk", chain);
+        return GetAutostartDir() / "fonerocore.desktop";
+    return GetAutostartDir() / strprintf("fonerocore-%s.lnk", chain);
 }
 
 bool GetStartOnSystemStartup()
@@ -792,13 +774,13 @@ bool SetStartOnSystemStartup(bool fAutoStart)
         if (!optionFile.good())
             return false;
         std::string chain = ChainNameFromCommandLine();
-        // Write a dashcore.desktop file to the autostart directory:
+        // Write a fonerocore.desktop file to the autostart directory:
         optionFile << "[Desktop Entry]\n";
         optionFile << "Type=Application\n";
         if (chain == CBaseChainParams::MAIN)
-            optionFile << "Name=Dash Core\n";
+            optionFile << "Name=Fonero Core\n";
         else
-            optionFile << strprintf("Name=Dash Core (%s)\n", chain);
+            optionFile << strprintf("Name=Fonero Core (%s)\n", chain);
         optionFile << "Exec=" << pszExePath << strprintf(" -min -testnet=%d -regtest=%d\n", GetBoolArg("-testnet", false), GetBoolArg("-regtest", false));
         optionFile << "Terminal=false\n";
         optionFile << "Hidden=false\n";
@@ -809,8 +791,6 @@ bool SetStartOnSystemStartup(bool fAutoStart)
 
 
 #elif defined(Q_OS_MAC)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 // based on: https://github.com/Mozketo/LaunchAtLoginController/blob/master/LaunchAtLoginController.m
 
 #include <CoreFoundation/CoreFoundation.h>
@@ -819,7 +799,7 @@ bool SetStartOnSystemStartup(bool fAutoStart)
 LSSharedFileListItemRef findStartupItemInList(LSSharedFileListRef list, CFURLRef findUrl);
 LSSharedFileListItemRef findStartupItemInList(LSSharedFileListRef list, CFURLRef findUrl)
 {
-    // loop through the list of startup items and try to find the Dash Core app
+    // loop through the list of startup items and try to find the Fonero Core app
     CFArrayRef listSnapshot = LSSharedFileListCopySnapshot(list, NULL);
     for(int i = 0; i < CFArrayGetCount(listSnapshot); i++) {
         LSSharedFileListItemRef item = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(listSnapshot, i);
@@ -864,7 +844,7 @@ bool SetStartOnSystemStartup(bool fAutoStart)
     LSSharedFileListItemRef foundItem = findStartupItemInList(loginItems, bitcoinAppUrl);
 
     if(fAutoStart && !foundItem) {
-        // add Dash Core app to startup item list
+        // add Fonero Core app to startup item list
         LSSharedFileListInsertItemURL(loginItems, kLSSharedFileListItemBeforeFirst, NULL, NULL, bitcoinAppUrl, NULL, NULL);
     }
     else if(!fAutoStart && foundItem) {
@@ -873,7 +853,6 @@ bool SetStartOnSystemStartup(bool fAutoStart)
     }
     return true;
 }
-#pragma GCC diagnostic pop
 #else
 
 bool GetStartOnSystemStartup() { return false; }
@@ -928,7 +907,7 @@ QString getThemeName()
     if(!theme.isEmpty()){
         return theme;
     }
-    return QString("light");  
+    return QString("default");  
 }
 
 // Open CSS when configured
@@ -943,8 +922,8 @@ QString loadStyleSheet()
         cssName = QString(":/css/") + theme; 
     }
     else {
-        cssName = QString(":/css/light");  
-        settings.setValue("theme", "light");
+        cssName = QString(":/css/default");  
+        settings.setValue("theme", "default");
     }
     
     QFile qFile(cssName);      
@@ -1023,9 +1002,6 @@ QString formatServicesStr(quint64 mask)
                 break;
             case NODE_BLOOM:
                 strList.append("BLOOM");
-                break;
-            case NODE_XTHIN:
-                strList.append("XTHIN");
                 break;
             default:
                 strList.append(QString("%1[%2]").arg("UNKNOWN").arg(check));

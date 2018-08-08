@@ -9,7 +9,7 @@
 #include "uint256.h"
 #include "util.h"
 #include "utilstrencodings.h"
-#include "test/test_dash.h"
+#include "test/test_fonero.h"
 
 #include <string>
 #include <vector>
@@ -120,11 +120,11 @@ void RunTest(const TestVector &test) {
 
         CDataStream ssPub(SER_DISK, CLIENT_VERSION);
         ssPub << pubkeyNew;
-        BOOST_CHECK(ssPub.size() == 75);
+        BOOST_CHECK(ssPub.size() == 74+1);
 
         CDataStream ssPriv(SER_DISK, CLIENT_VERSION);
         ssPriv << keyNew;
-        BOOST_CHECK(ssPriv.size() == 75);
+        BOOST_CHECK(ssPriv.size() == 74+1);
 
         CExtPubKey pubCheck;
         CExtKey privCheck;

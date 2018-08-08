@@ -15,6 +15,8 @@
 
 #include <assert.h>
 #include <stdint.h>
+
+#include <boost/foreach.hpp>
 #include <unordered_map>
 
 /**
@@ -54,20 +56,20 @@ public:
     }
 
     template<typename Stream>
-    void Serialize(Stream &s) const {
+    void Serialize(Stream &s, int nType, int nVersion) const {
         assert(!IsSpent());
         uint32_t code = nHeight * 2 + fCoinBase;
-        ::Serialize(s, VARINT(code));
-        ::Serialize(s, CTxOutCompressor(REF(out)));
+        ::Serialize(s, VARINT(code), nType, nVersion);
+        ::Serialize(s, CTxOutCompressor(REF(out)), nType, nVersion);
     }
 
     template<typename Stream>
-    void Unserialize(Stream &s) {
+    void Unserialize(Stream &s, int nType, int nVersion) {
         uint32_t code = 0;
-        ::Unserialize(s, VARINT(code));
+        ::Unserialize(s, VARINT(code), nType, nVersion);
         nHeight = code >> 1;
         fCoinBase = code & 1;
-        ::Unserialize(s, REF(CTxOutCompressor(out)));
+        ::Unserialize(s, REF(CTxOutCompressor(out)), nType, nVersion);
     }
 
     bool IsSpent() const {
@@ -268,7 +270,7 @@ public:
     size_t DynamicMemoryUsage() const;
 
     /** 
-     * Amount of dash coming in to a transaction
+     * Amount of fonero coming in to a transaction
      * Note that lightweight clients may not know anything besides the hash of previous transactions,
      * so may not be able to calculate this.
      *

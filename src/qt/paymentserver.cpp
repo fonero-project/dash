@@ -11,7 +11,7 @@
 
 #include "base58.h"
 #include "chainparams.h"
-#include "policy/policy.h"
+#include "validation.h" // For minRelayTxFee
 #include "ui_interface.h"
 #include "util.h"
 #include "wallet/wallet.h"
@@ -48,14 +48,16 @@
 #endif
 
 const int BITCOIN_IPC_CONNECT_TIMEOUT = 1000; // milliseconds
-const QString BITCOIN_IPC_PREFIX("dash:");
+const QString BITCOIN_IPC_PREFIX("fonero:");
 // BIP70 payment protocol messages
 const char* BIP70_MESSAGE_PAYMENTACK = "PaymentACK";
 const char* BIP70_MESSAGE_PAYMENTREQUEST = "PaymentRequest";
 // BIP71 payment protocol media types
-const char* BIP71_MIMETYPE_PAYMENT = "application/dash-payment";
-const char* BIP71_MIMETYPE_PAYMENTACK = "application/dash-paymentack";
-const char* BIP71_MIMETYPE_PAYMENTREQUEST = "application/dash-paymentrequest";
+const char* BIP71_MIMETYPE_PAYMENT = "application/fonero-payment";
+const char* BIP71_MIMETYPE_PAYMENTACK = "application/fonero-paymentack";
+const char* BIP71_MIMETYPE_PAYMENTREQUEST = "application/fonero-paymentrequest";
+// BIP70 max payment request size in bytes (DoS protection)
+const qint64 BIP70_MAX_PAYMENTREQUEST_SIZE = 50000;
 
 struct X509StoreDeleter {
       void operator()(X509_STORE* b) {
@@ -79,12 +81,12 @@ namespace // Anon namespace
 //
 static QString ipcServerName()
 {
-    QString name("DashQt");
+    QString name("FoneroQt");
 
     // Append a simple hash of the datadir
     // Note that GetDataDir(true) returns a different path
     // for -testnet versus main net
-    QString ddir(GUIUtil::boostPathToQString(GetDataDir(true)));
+    QString ddir(QString::fromStdString(GetDataDir(true).string()));
     name.append(QString::number(qHash(ddir)));
 
     return name;
@@ -208,11 +210,11 @@ void PaymentServer::ipcParseCommandLine(int argc, char* argv[])
         if (arg.startsWith("-"))
             continue;
 
-        // If the dash: URI contains a payment request, we are not able to detect the
+        // If the fonero: URI contains a payment request, we are not able to detect the
         // network as that would require fetching and parsing the payment request.
         // That means clicking such an URI which contains a testnet payment request
         // will start a mainnet instance and throw a "wrong network" error.
-        if (arg.startsWith(BITCOIN_IPC_PREFIX, Qt::CaseInsensitive)) // dash: URI
+        if (arg.startsWith(BITCOIN_IPC_PREFIX, Qt::CaseInsensitive)) // fonero: URI
         {
             savedPaymentRequests.append(arg);
 
@@ -308,7 +310,7 @@ PaymentServer::PaymentServer(QObject* parent, bool startLocalServer) :
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     // Install global event filter to catch QFileOpenEvents
-    // on Mac: sent when you click dash: links
+    // on Mac: sent when you click fonero: links
     // other OSes: helpful when dealing with payment request files
     if (parent)
         parent->installEventFilter(this);
@@ -325,7 +327,7 @@ PaymentServer::PaymentServer(QObject* parent, bool startLocalServer) :
         if (!uriServer->listen(name)) {
             // constructor is called early in init, so don't use "Q_EMIT message()" here
             QMessageBox::critical(0, tr("Payment request error"),
-                tr("Cannot start dash: click-to-pay handler"));
+                tr("Cannot start fonero: click-to-pay handler"));
         }
         else {
             connect(uriServer, SIGNAL(newConnection()), this, SLOT(handleURIConnection()));
@@ -340,7 +342,7 @@ PaymentServer::~PaymentServer()
 }
 
 //
-// OSX-specific way of handling dash: URIs and PaymentRequest mime types.
+// OSX-specific way of handling fonero: URIs and PaymentRequest mime types.
 // Also used by paymentservertests.cpp and when opening a payment request file
 // via "Open URI..." menu entry.
 //
@@ -366,7 +368,7 @@ void PaymentServer::initNetManager()
     if (netManager != NULL)
         delete netManager;
 
-    // netManager is used to fetch paymentrequests given in dash: URIs
+    // netManager is used to fetch paymentrequests given in fonero: URIs
     netManager = new QNetworkAccessManager(this);
 
     QNetworkProxy proxy;
@@ -406,7 +408,7 @@ void PaymentServer::handleURIOrFile(const QString& s)
         return;
     }
 
-    if (s.startsWith(BITCOIN_IPC_PREFIX, Qt::CaseInsensitive)) // dash: URI
+    if (s.startsWith(BITCOIN_IPC_PREFIX, Qt::CaseInsensitive)) // fonero: URI
     {
 #if QT_VERSION < 0x050000
         QUrl uri(s);
@@ -450,7 +452,7 @@ void PaymentServer::handleURIOrFile(const QString& s)
             }
             else
                 Q_EMIT message(tr("URI handling"),
-                    tr("URI cannot be parsed! This can be caused by an invalid Dash address or malformed URI parameters."),
+                    tr("URI cannot be parsed! This can be caused by an invalid Fonero address or malformed URI parameters."),
                     CClientUIInterface::ICON_WARNING);
 
             return;
@@ -562,7 +564,7 @@ bool PaymentServer::processPaymentRequest(const PaymentRequestPlus& request, Sen
             addresses.append(QString::fromStdString(CBitcoinAddress(dest).ToString()));
         }
         else if (!recipient.authenticatedMerchant.isEmpty()) {
-            // Unauthenticated payment requests to custom dash addresses are not supported
+            // Unauthenticated payment requests to custom fonero addresses are not supported
             // (there is no good way to tell the user where they are paying in a way they'd
             // have a chance of understanding).
             Q_EMIT message(tr("Payment request rejected"),
@@ -571,7 +573,7 @@ bool PaymentServer::processPaymentRequest(const PaymentRequestPlus& request, Sen
             return false;
         }
 
-        // Dash amounts are stored as (optional) uint64 in the protobuf messages (see paymentrequest.proto),
+        // Fonero amounts are stored as (optional) uint64 in the protobuf messages (see paymentrequest.proto),
         // but CAmount is defined as int64_t. Because of that we need to verify that amounts are in a valid range
         // and no overflow has happened.
         if (!verifyAmount(sendingTo.second)) {
@@ -581,7 +583,7 @@ bool PaymentServer::processPaymentRequest(const PaymentRequestPlus& request, Sen
 
         // Extract and check amounts
         CTxOut txOut(sendingTo.second, sendingTo.first);
-        if (txOut.IsDust(dustRelayFee)) {
+        if (txOut.IsDust(::minRelayTxFee)) {
             Q_EMIT message(tr("Payment request error"), tr("Requested payment amount of %1 is too small (considered dust).")
                 .arg(BitcoinUnits::formatWithUnit(optionsModel->getDisplayUnit(), sendingTo.second)),
                 CClientUIInterface::MSG_ERROR);
@@ -748,9 +750,9 @@ void PaymentServer::reportSslErrors(QNetworkReply* reply, const QList<QSslError>
     Q_EMIT message(tr("Network request error"), errString, CClientUIInterface::MSG_ERROR);
 }
 
-void PaymentServer::setOptionsModel(OptionsModel *_optionsModel)
+void PaymentServer::setOptionsModel(OptionsModel *optionsModel)
 {
-    this->optionsModel = _optionsModel;
+    this->optionsModel = optionsModel;
 }
 
 void PaymentServer::handlePaymentACK(const QString& paymentACKMsg)

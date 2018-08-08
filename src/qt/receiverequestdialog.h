@@ -10,7 +10,6 @@
 #include <QDialog>
 #include <QImage>
 #include <QLabel>
-#include <QPainter>
 
 class OptionsModel;
 
@@ -38,8 +37,8 @@ public Q_SLOTS:
     void copyImage();
 
 protected:
-    virtual void mousePressEvent(QMouseEvent *event) override;
-    virtual void contextMenuEvent(QContextMenuEvent *event) override;
+    virtual void mousePressEvent(QMouseEvent *event);
+    virtual void contextMenuEvent(QContextMenuEvent *event);
 
 private:
     QMenu *contextMenu;

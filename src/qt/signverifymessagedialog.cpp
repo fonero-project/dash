@@ -21,11 +21,11 @@
 
 #include <QClipboard>
 
-SignVerifyMessageDialog::SignVerifyMessageDialog(const PlatformStyle *_platformStyle, QWidget *parent) :
+SignVerifyMessageDialog::SignVerifyMessageDialog(const PlatformStyle *platformStyle, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SignVerifyMessageDialog),
     model(0),
-    platformStyle(_platformStyle)
+    platformStyle(platformStyle)
 {
     ui->setupUi(this);
 
@@ -73,9 +73,9 @@ SignVerifyMessageDialog::~SignVerifyMessageDialog()
     delete ui;
 }
 
-void SignVerifyMessageDialog::setModel(WalletModel *_model)
+void SignVerifyMessageDialog::setModel(WalletModel *model)
 {
-    this->model = _model;
+    this->model = model;
 }
 
 void SignVerifyMessageDialog::setAddress_SM(const QString &address)
@@ -155,7 +155,7 @@ void SignVerifyMessageDialog::on_signMessageButton_SM_clicked()
     }
 
     CKey key;
-    if (!model->getPrivKey(keyID, key))
+    if (!pwalletMain->GetKey(keyID, key))
     {
         ui->statusLabel_SM->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_SM->setText(tr("Private key for the entered address is not available."));

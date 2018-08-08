@@ -1,11 +1,11 @@
 Sample configuration files for:
 
-SystemD: dashd.service
-Upstart: dashd.conf
-OpenRC:  dashd.openrc
-         dashd.openrcconf
-CentOS:  dashd.init
-OS X:    org.dash.dashd.plist
+SystemD: fonerod.service
+Upstart: fonerod.conf
+OpenRC:  fonerod.openrc
+         fonerod.openrcconf
+CentOS:  fonerod.init
+OS X:    org.fonero.fonerod.plist
 
 have been made available to assist packagers in creating node packages here.
 

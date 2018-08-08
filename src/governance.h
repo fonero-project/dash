@@ -5,7 +5,7 @@
 #ifndef GOVERNANCE_H
 #define GOVERNANCE_H
 
-//#define ENABLE_DASH_DEBUG
+//#define ENABLE_FNO_DEBUG
 
 #include "bloom.h"
 #include "cachemap.h"
@@ -18,8 +18,6 @@
 #include "sync.h"
 #include "timedata.h"
 #include "util.h"
-
-#include <univalue.h>
 
 class CGovernanceManager;
 class CGovernanceTriggerManager;
@@ -39,8 +37,7 @@ typedef std::pair<CGovernanceObject, ExpirationInfo> object_info_pair_t;
 
 static const int RATE_BUFFER_SIZE = 5;
 
-class CRateCheckBuffer
-{
+class CRateCheckBuffer {
 private:
     std::vector<int64_t> vecTimestamps;
 
@@ -72,7 +69,7 @@ public:
     int64_t GetMinTimestamp()
     {
         int nIndex = nDataStart;
-        int64_t nMin = std::numeric_limits<int64_t>::max();
+        int64_t nMin = numeric_limits<int64_t>::max();
         if(fBufferEmpty) {
             return nMin;
         }
@@ -135,7 +132,7 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
     {
         READWRITE(vecTimestamps);
         READWRITE(nDataStart);
@@ -155,19 +152,22 @@ public: // Types
     struct last_object_rec {
         last_object_rec(bool fStatusOKIn = true)
             : triggerBuffer(),
+              watchdogBuffer(),
               fStatusOK(fStatusOKIn)
             {}
 
         ADD_SERIALIZE_METHODS;
 
         template <typename Stream, typename Operation>
-        inline void SerializationOp(Stream& s, Operation ser_action)
+        inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
         {
             READWRITE(triggerBuffer);
+            READWRITE(watchdogBuffer);
             READWRITE(fStatusOK);
         }
 
         CRateCheckBuffer triggerBuffer;
+        CRateCheckBuffer watchdogBuffer;
         bool fStatusOK;
     };
 
@@ -178,7 +178,7 @@ public: // Types
 
     typedef object_m_t::const_iterator object_m_cit;
 
-    typedef CacheMap<uint256, CGovernanceObject*> object_ref_cm_t;
+    typedef CacheMap<uint256, CGovernanceObject*> object_ref_cache_t;
 
     typedef std::map<uint256, CGovernanceVote> vote_m_t;
 
@@ -186,9 +186,9 @@ public: // Types
 
     typedef vote_m_t::const_iterator vote_m_cit;
 
-    typedef CacheMap<uint256, CGovernanceVote> vote_cm_t;
+    typedef CacheMap<uint256, CGovernanceVote> vote_cache_t;
 
-    typedef CacheMultiMap<uint256, vote_time_pair_t> vote_cmm_t;
+    typedef CacheMultiMap<uint256, vote_time_pair_t> vote_mcache_t;
 
     typedef object_m_t::size_type size_type;
 
@@ -245,11 +245,17 @@ private:
     object_m_t mapPostponedObjects;
     hash_s_t setAdditionalRelayObjects;
 
-    object_ref_cm_t cmapVoteToObject;
+    hash_time_m_t mapWatchdogObjects;
 
-    vote_cm_t cmapInvalidVotes;
+    uint256 nHashWatchdogCurrent;
 
-    vote_cmm_t cmmapOrphanVotes;
+    int64_t nTimeWatchdogCurrent;
+
+    object_ref_cache_t mapVoteToObject;
+
+    vote_cache_t mapInvalidVotes;
+
+    vote_mcache_t mapOrphanVotes;
 
     txout_m_t mapLastMasternodeObject;
 
@@ -279,7 +285,7 @@ private:
     };
 
 public:
-    // critical section to protect the inner data structures
+    // critical section to fonero the inner data structures
     mutable CCriticalSection cs;
 
     CGovernanceManager();
@@ -287,27 +293,28 @@ public:
     virtual ~CGovernanceManager() {}
 
     /**
-     * This is called by AlreadyHave in net_processing.cpp as part of the inventory
+     * This is called by AlreadyHave in main.cpp as part of the inventory
      * retrieval process.  Returns true if we want to retrieve the object, otherwise
      * false. (Note logic is inverted in AlreadyHave).
      */
     bool ConfirmInventoryRequest(const CInv& inv);
 
-    void SyncSingleObjAndItsVotes(CNode* pnode, const uint256& nProp, const CBloomFilter& filter, CConnman& connman);
-    void SyncAll(CNode* pnode, CConnman& connman) const;
+    void Sync(CNode* node, const uint256& nProp, const CBloomFilter& filter, CConnman& connman);
 
-    void ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStream& vRecv, CConnman& connman);
+    void ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStream& vRecv, CConnman& connman);
 
     void DoMaintenance(CConnman& connman);
 
-    CGovernanceObject* FindGovernanceObject(const uint256& nHash);
+    CGovernanceObject *FindGovernanceObject(const uint256& nHash);
 
-    // These commands are only used in RPC
-    std::vector<CGovernanceVote> GetMatchingVotes(const uint256& nParentHash) const;
-    std::vector<CGovernanceVote> GetCurrentVotes(const uint256& nParentHash, const COutPoint& mnCollateralOutpointFilter) const;
-    std::vector<const CGovernanceObject*> GetAllNewerThan(int64_t nMoreThanTime) const;
+    std::vector<CGovernanceVote> GetMatchingVotes(const uint256& nParentHash);
+    std::vector<CGovernanceVote> GetCurrentVotes(const uint256& nParentHash, const COutPoint& mnCollateralOutpointFilter);
+    std::vector<CGovernanceObject*> GetAllNewerThan(int64_t nMoreThanTime);
 
+    bool IsBudgetPaymentBlock(int nBlockHeight);
     void AddGovernanceObject(CGovernanceObject& govobj, CConnman& connman, CNode* pfrom = NULL);
+
+    std::string GetRequiredPaymentsString(int nBlockHeight);
 
     void UpdateCachesAndClean();
 
@@ -320,19 +327,21 @@ public:
         LogPrint("gobject", "Governance object manager was cleared\n");
         mapObjects.clear();
         mapErasedGovernanceObjects.clear();
-        cmapVoteToObject.Clear();
-        cmapInvalidVotes.Clear();
-        cmmapOrphanVotes.Clear();
+        mapWatchdogObjects.clear();
+        nHashWatchdogCurrent = uint256();
+        nTimeWatchdogCurrent = 0;
+        mapVoteToObject.Clear();
+        mapInvalidVotes.Clear();
+        mapOrphanVotes.Clear();
         mapLastMasternodeObject.clear();
     }
 
     std::string ToString() const;
-    UniValue ToJson() const;
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
         LOCK(cs);
         std::string strVersion;
         if(ser_action.ForRead()) {
@@ -344,9 +353,12 @@ public:
         }
 
         READWRITE(mapErasedGovernanceObjects);
-        READWRITE(cmapInvalidVotes);
-        READWRITE(cmmapOrphanVotes);
+        READWRITE(mapInvalidVotes);
+        READWRITE(mapOrphanVotes);
         READWRITE(mapObjects);
+        READWRITE(mapWatchdogObjects);
+        READWRITE(nHashWatchdogCurrent);
+        READWRITE(nTimeWatchdogCurrent);
         READWRITE(mapLastMasternodeObject);
         if(ser_action.ForRead() && (strVersion != SERIALIZATION_VERSION_STRING)) {
             Clear();
@@ -355,21 +367,21 @@ public:
     }
 
     void UpdatedBlockTip(const CBlockIndex *pindex, CConnman& connman);
-    int64_t GetLastDiffTime() const { return nTimeLastDiff; }
+    int64_t GetLastDiffTime() { return nTimeLastDiff; }
     void UpdateLastDiffTime(int64_t nTimeIn) { nTimeLastDiff = nTimeIn; }
 
-    int GetCachedBlockHeight() const { return nCachedBlockHeight; }
+    int GetCachedBlockHeight() { return nCachedBlockHeight; }
 
     // Accessors for thread-safe access to maps
-    bool HaveObjectForHash(const uint256& nHash) const;
+    bool HaveObjectForHash(uint256 nHash);
 
-    bool HaveVoteForHash(const uint256& nHash) const;
+    bool HaveVoteForHash(uint256 nHash);
 
     int GetVoteCount() const;
 
-    bool SerializeObjectForHash(const uint256& nHash, CDataStream& ss) const;
+    bool SerializeObjectForHash(uint256 nHash, CDataStream& ss);
 
-    bool SerializeVoteForHash(const uint256& nHash, CDataStream& ss) const;
+    bool SerializeVoteForHash(uint256 nHash, CDataStream& ss);
 
     void AddPostponedObject(const CGovernanceObject& govobj)
     {
@@ -377,9 +389,9 @@ public:
         mapPostponedObjects.insert(std::make_pair(govobj.GetHash(), govobj));
     }
 
-    void AddSeenGovernanceObject(const uint256& nHash, int status);
+    void AddSeenGovernanceObject(uint256 nHash, int status);
 
-    void AddSeenVote(const uint256& nHash, int status);
+    void AddSeenVote(uint256 nHash, int status);
 
     void MasternodeRateUpdate(const CGovernanceObject& govobj);
 
@@ -416,12 +428,12 @@ private:
 
     void AddInvalidVote(const CGovernanceVote& vote)
     {
-        cmapInvalidVotes.Insert(vote.GetHash(), vote);
+        mapInvalidVotes.Insert(vote.GetHash(), vote);
     }
 
     void AddOrphanVote(const CGovernanceVote& vote)
     {
-        cmmapOrphanVotes.Insert(vote.GetHash(), vote_time_pair_t(vote, GetAdjustedTime() + GOVERNANCE_ORPHAN_EXPIRATION_TIME));
+        mapOrphanVotes.Insert(vote.GetHash(), vote_time_pair_t(vote, GetAdjustedTime() + GOVERNANCE_ORPHAN_EXPIRATION_TIME));
     }
 
     bool ProcessVote(CNode* pfrom, const CGovernanceVote& vote, CGovernanceException& exception, CConnman& connman);
@@ -439,6 +451,8 @@ private:
     void RebuildIndexes();
 
     void AddCachedTriggers();
+
+    bool UpdateCurrentWatchdog(CGovernanceObject& watchdogNew);
 
     void RequestOrphanObjects(CConnman& connman);
 

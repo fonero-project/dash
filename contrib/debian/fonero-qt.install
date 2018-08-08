@@ -1,0 +1,6 @@
+usr/local/bin/fonero-qt usr/bin
+share/pixmaps/fonero32.xpm usr/share/pixmaps
+share/pixmaps/fonero16.xpm usr/share/pixmaps
+share/pixmaps/fonero128.png usr/share/pixmaps
+debian/fonero-qt.desktop usr/share/applications
+debian/fonero-qt.protocol usr/share/kde4/services/

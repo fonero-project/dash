@@ -36,7 +36,7 @@ public:
     enum ColumnWidths {
         DATE_COLUMN_WIDTH = 130,
         LABEL_COLUMN_WIDTH = 120,
-        AMOUNT_MINIMUM_COLUMN_WIDTH = 180,
+        AMOUNT_MINIMUM_COLUMN_WIDTH = 160,
         MINIMUM_COLUMN_WIDTH = 130
     };
 
@@ -47,11 +47,11 @@ public:
 
 public Q_SLOTS:
     void clear();
-    void reject() override;
-    void accept() override;
+    void reject();
+    void accept();
 
 protected:
-    virtual void keyPressEvent(QKeyEvent *event) override;
+    virtual void keyPressEvent(QKeyEvent *event);
 
 private:
     Ui::ReceiveCoinsDialog *ui;
@@ -62,7 +62,7 @@ private:
 
     QModelIndex selectedRow();
     void copyColumnToClipboard(int column);
-    virtual void resizeEvent(QResizeEvent *event) override;
+    virtual void resizeEvent(QResizeEvent *event);
 
 private Q_SLOTS:
     void on_receiveButton_clicked();

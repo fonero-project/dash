@@ -3,10 +3,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#if defined(HAVE_CONFIG_H)
-#include "config/dash-config.h"
-#endif
-
 #include "intro.h"
 #include "ui_intro.h"
 
@@ -24,7 +20,7 @@
 
 static const uint64_t GB_BYTES = 1000000000LL;
 /* Minimum free space (in GB) needed for data directory */
-static const uint64_t BLOCK_CHAIN_SIZE = 10;
+static const uint64_t BLOCK_CHAIN_SIZE = 1;
 /* Minimum free space (in GB) needed for data directory when pruned; Does not include prune target */
 static const uint64_t CHAIN_STATE_SIZE = 1;
 /* Total required space (in GB) depending on user choice (prune, not prune) */
@@ -64,9 +60,9 @@ private:
 
 #include "intro.moc"
 
-FreespaceChecker::FreespaceChecker(Intro *_intro)
+FreespaceChecker::FreespaceChecker(Intro *intro)
 {
-    this->intro = _intro;
+    this->intro = intro;
 }
 
 void FreespaceChecker::check()
@@ -123,18 +119,11 @@ Intro::Intro(QWidget *parent) :
     signalled(false)
 {
     ui->setupUi(this);
-    ui->welcomeLabel->setText(ui->welcomeLabel->text().arg(tr(PACKAGE_NAME)));
-    ui->storageLabel->setText(ui->storageLabel->text().arg(tr(PACKAGE_NAME)));
     uint64_t pruneTarget = std::max<int64_t>(0, GetArg("-prune", 0));
     requiredSpace = BLOCK_CHAIN_SIZE;
-    if (pruneTarget) {
-        uint64_t prunedGBs = std::ceil(pruneTarget * 1024 * 1024.0 / GB_BYTES);
-        if (prunedGBs <= requiredSpace) {
-            requiredSpace = prunedGBs;
-        }
-    }
-    requiredSpace += CHAIN_STATE_SIZE;
-    ui->sizeWarningLabel->setText(ui->sizeWarningLabel->text().arg(tr(PACKAGE_NAME)).arg(requiredSpace));
+    if (pruneTarget)
+        requiredSpace = CHAIN_STATE_SIZE + std::ceil(pruneTarget * 1024 * 1024.0 / GB_BYTES);
+    ui->sizeWarningLabel->setText(ui->sizeWarningLabel->text().arg(requiredSpace));
     startThread();
 }
 
@@ -171,14 +160,14 @@ QString Intro::getDefaultDataDirectory()
     return GUIUtil::boostPathToQString(GetDefaultDataDir());
 }
 
-bool Intro::pickDataDirectory()
+void Intro::pickDataDirectory()
 {
     namespace fs = boost::filesystem;
     QSettings settings;
     /* If data directory provided on command line, no need to look at settings
        or show a picking dialog */
     if(!GetArg("-datadir", "").empty())
-        return true;
+        return;
     /* 1) Default data directory for operating system */
     QString dataDirDefaultCurrent = getDefaultDataDirectory();
     /* 2) Allow QSettings to override default dir */
@@ -191,21 +180,21 @@ bool Intro::pickDataDirectory()
         /* Let the user choose one */
         Intro intro;
         intro.setDataDirectory(dataDirDefaultCurrent);
-        intro.setWindowIcon(QIcon(":icons/bitcoin"));
+        intro.setWindowIcon(QIcon(":icons/fonero"));
 
         while(true)
         {
             if(!intro.exec())
             {
                 /* Cancel clicked */
-                return false;
+                exit(EXIT_SUCCESS);
             }
             dataDir = intro.getDataDirectory();
             try {
                 TryCreateDirectory(GUIUtil::qstringToBoostPath(dataDir));
                 break;
             } catch (const fs::filesystem_error&) {
-                QMessageBox::critical(0, tr(PACKAGE_NAME),
+                QMessageBox::critical(0, tr("Fonero Core"),
                     tr("Error: Specified data directory \"%1\" cannot be created.").arg(dataDir));
                 /* fall through, back to choosing screen */
             }
@@ -215,12 +204,11 @@ bool Intro::pickDataDirectory()
         settings.setValue("strDataDirDefault", dataDirDefaultCurrent);
     }
     /* Only override -datadir if different from the default, to make it possible to
-     * override -datadir in the dash.conf file in the default data directory
-     * (to be consistent with dashd behavior)
+     * override -datadir in the fonero.conf file in the default data directory
+     * (to be consistent with fonerod behavior)
      */
     if(dataDir != dataDirDefaultCurrent)
         SoftSetArg("-datadir", GUIUtil::qstringToBoostPath(dataDir).string()); // use OS locale for path setting
-    return true;
 }
 
 void Intro::setStatus(int status, const QString &message, quint64 bytesAvailable)

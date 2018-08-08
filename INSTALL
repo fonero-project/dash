@@ -1,0 +1,40 @@
+Building Fonero Core
+
+After you install the usual build tools and C++ development tools,
+Fonero Core also needs some build dependencies which are not always provided
+by default by the OS package manager
+(in particular BerkeleyDB 4.8 for building with wallet support).
+
+Before trying to build, be sure to read one of these files,
+depending on your environment:
+
+  doc/build-unix.md
+  doc/build-openbsd.md
+  doc/build-osx.md
+  doc/build-windows.md
+
+After installing the needed dependencies,
+use the autogen script to prepare the build environment.
+
+    sudo update-alternatives --config i686-w64-mingw32-gcc
+    (select i686-w64-mingw32-gcc-posix)
+    sudo update-alternatives --config i686-w64-mingw32-g++
+    (select i686-w64-mingw32-g++-posix)
+
+    sudo update-alternatives --config x86_64-w64-mingw32-gcc
+    (select x86_64-w64-mingw32-gcc-posix)
+    sudo update-alternatives --config x86_64-w64-mingw32-g++
+    (select x86_64-w64-mingw32-g++-posix)
+
+    ./autogen.sh
+    ./configure
+    make
+
+Precompiled binaries are available at github, see
+https://github.com/fonero-project/fonero
+
+Always verify the signatures and checksums.
+
+See doc/build-*.md for instructions on building fonerod,
+the intended-for-services, no-graphical-interface,
+reference implementation of Fonero.

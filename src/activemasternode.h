@@ -30,7 +30,7 @@ public:
     };
 
 private:
-    // critical section to protect the inner data structures
+    // critical section to fonero the inner data structures
     mutable CCriticalSection cs;
 
     masternode_type_enum_t eType;

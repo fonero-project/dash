@@ -16,6 +16,9 @@
     <height>500</height>
    </size>
   </property>
+  <property name="windowTitle">
+   <string notr="true">Fonero Core - Command-line options</string>
+  </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <property name="spacing">
     <number>0</number>
@@ -73,7 +76,7 @@
         <bool>false</bool>
        </property>
        <property name="pixmap">
-        <pixmap resource="../dash.qrc">:/images/drkblue/about</pixmap>
+        <pixmap resource="../fonero.qrc">:/images/default/about</pixmap>
        </property>
        <property name="scaledContents">
         <bool>false</bool>
@@ -169,7 +172,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../dash.qrc"/>
+  <include location="../fonero.qrc"/>
  </resources>
  <connections>
   <connection>

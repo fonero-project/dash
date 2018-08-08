@@ -51,20 +51,19 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
         //
         // Credit
         //
-        for(unsigned int i = 0; i < wtx.tx->vout.size(); i++)
+        BOOST_FOREACH(const CTxOut& txout, wtx.vout)
         {
-            const CTxOut& txout = wtx.tx->vout[i];
             isminetype mine = wallet->IsMine(txout);
             if(mine)
             {
                 TransactionRecord sub(hash, nTime);
                 CTxDestination address;
-                sub.idx = i; // vout index
+                sub.idx = parts.size(); // sequence number
                 sub.credit = txout.nValue;
                 sub.involvesWatchAddress = mine & ISMINE_WATCH_ONLY;
                 if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*wallet, address))
                 {
-                    // Received by Dash Address
+                    // Received by Fonero Address
                     sub.type = TransactionRecord::RecvWithAddress;
                     sub.address = CBitcoinAddress(address).ToString();
                 }
@@ -90,7 +89,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
         int nFromMe = 0;
         bool involvesWatchAddress = false;
         isminetype fAllFromMe = ISMINE_SPENDABLE;
-        BOOST_FOREACH(const CTxIn& txin, wtx.tx->vin)
+        BOOST_FOREACH(const CTxIn& txin, wtx.vin)
         {
             if(wallet->IsMine(txin)) {
                 fAllFromMeDenom = fAllFromMeDenom && wallet->IsDenominated(txin.prevout);
@@ -104,7 +103,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
         isminetype fAllToMe = ISMINE_SPENDABLE;
         bool fAllToMeDenom = true;
         int nToMe = 0;
-        BOOST_FOREACH(const CTxOut& txout, wtx.tx->vout) {
+        BOOST_FOREACH(const CTxOut& txout, wtx.vout) {
             if(wallet->IsMine(txout)) {
                 fAllToMeDenom = fAllToMeDenom && CPrivateSend::IsDenominatedAmount(txout.nValue);
                 nToMe++;
@@ -133,9 +132,9 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             {
                 sub.type = TransactionRecord::PrivateSend;
                 CTxDestination address;
-                if (ExtractDestination(wtx.tx->vout[0].scriptPubKey, address))
+                if (ExtractDestination(wtx.vout[0].scriptPubKey, address))
                 {
-                    // Sent to Dash Address
+                    // Sent to Fonero Address
                     sub.address = CBitcoinAddress(address).ToString();
                 }
                 else
@@ -146,14 +145,14 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             }
             else
             {
-                for (unsigned int nOut = 0; nOut < wtx.tx->vout.size(); nOut++)
+                for (unsigned int nOut = 0; nOut < wtx.vout.size(); nOut++)
                 {
-                    const CTxOut& txout = wtx.tx->vout[nOut];
+                    const CTxOut& txout = wtx.vout[nOut];
                     sub.idx = parts.size();
 
-                    if(txout.nValue == CPrivateSend::GetMaxCollateralAmount()) sub.type = TransactionRecord::PrivateSendMakeCollaterals;
+                    if(CPrivateSend::IsCollateralAmount(txout.nValue)) sub.type = TransactionRecord::PrivateSendMakeCollaterals;
                     if(CPrivateSend::IsDenominatedAmount(txout.nValue)) sub.type = TransactionRecord::PrivateSendCreateDenominations;
-                    if(nDebit - wtx.tx->GetValueOut() == CPrivateSend::GetCollateralAmount()) sub.type = TransactionRecord::PrivateSendCollateralPayment;
+                    if(nDebit - wtx.GetValueOut() == CPrivateSend::GetCollateralAmount()) sub.type = TransactionRecord::PrivateSendCollateralPayment;
                 }
             }
 
@@ -169,13 +168,13 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             //
             // Debit
             //
-            CAmount nTxFee = nDebit - wtx.tx->GetValueOut();
+            CAmount nTxFee = nDebit - wtx.GetValueOut();
 
-            for (unsigned int nOut = 0; nOut < wtx.tx->vout.size(); nOut++)
+            for (unsigned int nOut = 0; nOut < wtx.vout.size(); nOut++)
             {
-                const CTxOut& txout = wtx.tx->vout[nOut];
+                const CTxOut& txout = wtx.vout[nOut];
                 TransactionRecord sub(hash, nTime);
-                sub.idx = nOut;
+                sub.idx = parts.size();
                 sub.involvesWatchAddress = involvesWatchAddress;
 
                 if(wallet->IsMine(txout))
@@ -188,7 +187,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                 CTxDestination address;
                 if (ExtractDestination(txout.scriptPubKey, address))
                 {
-                    // Sent to Dash Address
+                    // Sent to Fonero Address
                     sub.type = TransactionRecord::SendToAddress;
                     sub.address = CBitcoinAddress(address).ToString();
                 }
@@ -253,15 +252,15 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
 
     if (!CheckFinalTx(wtx))
     {
-        if (wtx.tx->nLockTime < LOCKTIME_THRESHOLD)
+        if (wtx.nLockTime < LOCKTIME_THRESHOLD)
         {
             status.status = TransactionStatus::OpenUntilBlock;
-            status.open_for = wtx.tx->nLockTime - chainActive.Height();
+            status.open_for = wtx.nLockTime - chainActive.Height();
         }
         else
         {
             status.status = TransactionStatus::OpenUntilDate;
-            status.open_for = wtx.tx->nLockTime;
+            status.open_for = wtx.nLockTime;
         }
     }
     // For generated transactions, determine maturity
@@ -325,10 +324,11 @@ bool TransactionRecord::statusUpdateNeeded()
 
 QString TransactionRecord::getTxID() const
 {
-    return QString::fromStdString(hash.ToString());
+    return formatSubTxId(hash, idx);
 }
 
-int TransactionRecord::getOutputIndex() const
+QString TransactionRecord::formatSubTxId(const uint256 &hash, int vout)
 {
-    return idx;
+    return QString::fromStdString(hash.ToString() + strprintf("-%03d", vout));
 }
+

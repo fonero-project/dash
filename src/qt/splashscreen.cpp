@@ -3,10 +3,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#if defined(HAVE_CONFIG_H)
-#include "config/dash-config.h"
-#endif
-
 #include "splashscreen.h"
 
 #include "guiutil.h"
@@ -39,24 +35,24 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle) 
 
     // set reference point, paddings
     int paddingLeft             = 14;
-    int paddingTop              = 470;
+    int paddingTop              = 450;
     int titleVersionVSpace      = 17;
-    int titleCopyrightVSpace    = 22;
+    int titleCopyrightVSpace    = 32;
 
     float fontFactor            = 1.0;
 
     // define text to place
-    QString titleText       = tr(PACKAGE_NAME);
+    QString titleText       = tr("Fonero Core");
     QString versionText     = QString(tr("Version %1")).arg(QString::fromStdString(FormatFullVersion()));
-    QString copyrightText   = QString::fromUtf8(CopyrightHolders("\xc2\xA9", 2014, COPYRIGHT_YEAR).c_str());
+    QString copyrightTextBtc   = QChar(0xA9)+QString(" 2009-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The Bitcoin Core developers"));
+    QString copyrightTextDash   = QChar(0xA9)+QString(" 2014-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The Dash Core developers"));
+    QString copyrightTextFonero   = QChar(0xA9)+QString(" 2018-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The Fonero Core developers"));
     QString titleAddText    = networkStyle->getTitleAddText();
     // networkstyle.cpp can't (yet) read themes, so we do it here to get the correct Splash-screen
     QString splashScreenPath = ":/images/" + GUIUtil::getThemeName() + "/splash";
     if(GetBoolArg("-regtest", false))
         splashScreenPath = ":/images/" + GUIUtil::getThemeName() + "/splash_testnet";
     if(GetBoolArg("-testnet", false))
-        splashScreenPath = ":/images/" + GUIUtil::getThemeName() + "/splash_testnet";
-    if(IsArgSet("-devnet"))
         splashScreenPath = ":/images/" + GUIUtil::getThemeName() + "/splash_testnet";
 
     QString font = QApplication::font().toString();
@@ -70,27 +66,25 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle) 
     // check font size and drawing with
     pixPaint.setFont(QFont(font, 28*fontFactor));
     QFontMetrics fm = pixPaint.fontMetrics();
-    int titleTextWidth = fm.width(titleText);
-    if (titleTextWidth > 160) {
+    int titleTextWidth  = fm.width(titleText);
+    if(titleTextWidth > 160) {
+        // strange font rendering, Arial probably not found
         fontFactor = 0.75;
     }
 
-    pixPaint.setFont(QFont(font, 28*fontFactor));
+    pixPaint.setFont(QFont(font, 18*fontFactor));
     fm = pixPaint.fontMetrics();
     titleTextWidth  = fm.width(titleText);
     pixPaint.drawText(paddingLeft,paddingTop,titleText);
 
-    pixPaint.setFont(QFont(font, 15*fontFactor));
+    pixPaint.setFont(QFont(font, 13*fontFactor));
     pixPaint.drawText(paddingLeft,paddingTop+titleVersionVSpace,versionText);
 
     // draw copyright stuff
-    {
-        pixPaint.setFont(QFont(font, 10*fontFactor));
-        const int x = paddingLeft;
-        const int y = paddingTop+titleCopyrightVSpace;
-        QRect copyrightRect(x, y, pixmap.width() - x, pixmap.height() - y);
-        pixPaint.drawText(copyrightRect, Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, copyrightText);
-    }
+    pixPaint.setFont(QFont(font, 10*fontFactor));
+    pixPaint.drawText(paddingLeft,paddingTop+titleCopyrightVSpace,copyrightTextBtc);
+    pixPaint.drawText(paddingLeft,paddingTop+titleCopyrightVSpace+12,copyrightTextDash);
+    pixPaint.drawText(paddingLeft,paddingTop+titleCopyrightVSpace+24,copyrightTextFonero);
 
     // draw additional text if special network
     if(!titleAddText.isEmpty()) {
@@ -168,10 +162,9 @@ static void SetProgressBreakAction(SplashScreen *splash, const std::function<voi
 }
 
 #ifdef ENABLE_WALLET
-void SplashScreen::ConnectWallet(CWallet* wallet)
+static void ConnectWallet(SplashScreen *splash, CWallet* wallet)
 {
-    wallet->ShowProgress.connect(boost::bind(ShowProgress, this, _1, _2));
-    connectedWallets.push_back(wallet);
+    wallet->ShowProgress.connect(boost::bind(ShowProgress, splash, _1, _2));
 }
 #endif
 
@@ -182,7 +175,7 @@ void SplashScreen::subscribeToCoreSignals()
     uiInterface.ShowProgress.connect(boost::bind(ShowProgress, this, _1, _2));
     uiInterface.SetProgressBreakAction.connect(boost::bind(SetProgressBreakAction, this, _1));
 #ifdef ENABLE_WALLET
-    uiInterface.LoadWallet.connect(boost::bind(&SplashScreen::ConnectWallet, this, _1));
+    uiInterface.LoadWallet.connect(boost::bind(ConnectWallet, this, _1));
 #endif
 }
 
@@ -192,9 +185,8 @@ void SplashScreen::unsubscribeFromCoreSignals()
     uiInterface.InitMessage.disconnect(boost::bind(InitMessage, this, _1));
     uiInterface.ShowProgress.disconnect(boost::bind(ShowProgress, this, _1, _2));
 #ifdef ENABLE_WALLET
-    Q_FOREACH(CWallet* const & pwallet, connectedWallets) {
-        pwallet->ShowProgress.disconnect(boost::bind(ShowProgress, this, _1, _2));
-    }
+    if(pwalletMain)
+        pwalletMain->ShowProgress.disconnect(boost::bind(ShowProgress, this, _1, _2));
 #endif
 }
 

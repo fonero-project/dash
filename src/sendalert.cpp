@@ -12,8 +12,8 @@ If you need to broadcast an alert, here's what to do:
 1. Modify alert parameters below, see alert.* and comments in the code
    for what does what.
 
-2. run dashd with -printalert or -sendalert like this:
-   /path/to/dashd -printalert
+2. run fonerod with -printalert or -sendalert like this:
+   /path/to/fonerod -printalert
 
 One minute after starting up the alert will be broadcast. It is then
 flooded through the network until the nRelayUntil time, and will be
@@ -25,12 +25,12 @@ the bad alert.
 
 void ThreadSendAlert(CConnman& connman)
 {
-    if (!IsArgSet("-sendalert") && !IsArgSet("-printalert"))
+    if (!mapArgs.count("-sendalert") && !mapArgs.count("-printalert"))
         return;
 
     // Wait one minute so we get well connected. If we only need to print
     // but not to broadcast - do this right away.
-    if (IsArgSet("-sendalert"))
+    if (mapArgs.count("-sendalert"))
         MilliSleep(60*1000);
 
     //
@@ -57,10 +57,10 @@ void ThreadSendAlert(CConnman& connman)
     //  Higher numbers mean higher priority
     alert.nPriority     = 5000;
     alert.strComment    = "";
-    alert.strStatusBar  = "URGENT: Upgrade required: see https://www.dash.org";
+    alert.strStatusBar  = "URGENT: Upgrade required: see https://fonero.org";
 
     // Set specific client version/versions here. If setSubVer is empty, no filtering on subver is done:
-    // alert.setSubVer.insert(std::string("/Dash Core:0.12.0.58/"));
+    // alert.setSubVer.insert(std::string("/Fonero Core:0.1.0.1/"));
 
     // Sign
     if(!alert.Sign())
@@ -89,7 +89,7 @@ void ThreadSendAlert(CConnman& connman)
     printf("vchSig=%s\n", HexStr(alert2.vchSig).c_str());
 
     // Confirm
-    if (!IsArgSet("-sendalert"))
+    if (!mapArgs.count("-sendalert"))
         return;
     while (connman.GetNodeCount(CConnman::CONNECTIONS_ALL) == 0 && !ShutdownRequested())
         MilliSleep(500);

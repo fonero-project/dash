@@ -1,9 +1,9 @@
 Gitian building
 ================
 
-*Setup instructions for a Gitian build of Dash Core using a Debian VM or physical system.*
+*Setup instructions for a Gitian build of Fonero Core using a Debian VM or physical system.*
 
-Gitian is the deterministic build process that is used to build the Dash
+Gitian is the deterministic build process that is used to build the Fonero
 Core executables. It provides a way to be reasonably sure that the
 executables are really built from the source on GitHub. It also makes sure that
 the same, tested dependencies are used and statically built into the executable.
@@ -11,7 +11,7 @@ the same, tested dependencies are used and statically built into the executable.
 Multiple developers build the source code by following a specific descriptor
 ("recipe"), cryptographically sign the result, and upload the resulting signature.
 These results are compared and only if they match, the build is accepted and uploaded
-to dash.org.
+to fonero.org.
 
 More independent Gitian builders are needed, which is why this guide exists.
 It is preferred you follow these steps yourself instead of using someone else's
@@ -26,7 +26,7 @@ Table of Contents
 - [Installing Gitian](#installing-gitian)
 - [Setting up the Gitian image](#setting-up-the-gitian-image)
 - [Getting and building the inputs](#getting-and-building-the-inputs)
-- [Building Dash Core](#building-dash-core)
+- [Building Fonero Core](#building-fonero-core)
 - [Building an alternative repository](#building-an-alternative-repository)
 - [Signing externally](#signing-externally)
 - [Uploading signatures](#uploading-signatures)
@@ -47,7 +47,7 @@ You can also install Gitian on actual hardware instead of using virtualization.
 
 Create a new VirtualBox VM
 ---------------------------
-In the VirtualBox GUI click "New" and choose the following parameters in the wizard:
+In the VirtualBox GUI click "Create" and choose the following parameters in the wizard:
 
 ![](gitian-building/create_new_vm.png)
 
@@ -55,7 +55,7 @@ In the VirtualBox GUI click "New" and choose the following parameters in the wiz
 
 ![](gitian-building/create_vm_memsize.png)
 
-- Memory Size: at least 3000MB, anything less and the build might not complete.
+- Memory Size: at least 1024MB, anything less will really slow down the build.
 
 ![](gitian-building/create_vm_hard_disk.png)
 
@@ -73,6 +73,13 @@ In the VirtualBox GUI click "New" and choose the following parameters in the wiz
 
 - File location and size: at least 40GB; as low as 20GB *may* be possible, but better to err on the safe side
 - Click `Create`
+
+Get the [Debian 8.x net installer](http://cdimage.debian.org/debian-cd/8.2.0/amd64/iso-cd/debian-8.2.0-amd64-netinst.iso) (a more recent minor version should also work, see also [Debian Network installation](https://www.debian.org/CD/netinst/)).
+This DVD image can be validated using a SHA256 hashing tool, for example on
+Unixy OSes by entering the following in a terminal:
+
+    echo "d393d17ac6b3113c81186e545c416a00f28ed6e05774284bb5e8f0df39fcbcb9  debian-8.2.0-amd64-netinst.iso" | sha256sum -c
+    # (must return OK)
 
 After creating the VM, we need to configure it.
 
@@ -95,14 +102,7 @@ After creating the VM, we need to configure it.
 
 - Click `Ok` twice to save.
 
-Get the [Debian 8.x net installer](http://cdimage.debian.org/mirror/cdimage/archive/8.5.0/amd64/iso-cd/debian-8.5.0-amd64-netinst.iso) (a more recent minor version should also work, see also [Debian Network installation](https://www.debian.org/CD/netinst/)).
-This DVD image can be [validated](https://www.debian.org/CD/verify) using a SHA256 hashing tool, for example on
-Unixy OSes by entering the following in a terminal:
-
-    echo "ad4e8c27c561ad8248d5ebc1d36eb172f884057bfeb2c22ead823f59fa8c3dff  debian-8.5.0-amd64-netinst.iso" | sha256sum -c
-    # (must return OK)
-
-Then start the VM. On the first launch you will be asked for a CD or DVD image. Choose the downloaded ISO.
+Then start the VM. On the first launch you will be asked for a CD or DVD image. Choose the downloaded iso.
 
 ![](gitian-building/select_startup_disk.png)
 
@@ -159,10 +159,6 @@ To select a different button, press `Tab`.
   - Select disk to partition: SCSI1 (0,0,0)
 
 ![](gitian-building/debian_install_12_choose_disk.png)
-
-  - Partition Disks -> *All files in one partition*
-
-![](gitian-building/all_files_in_one_partition.png)
 
   - Finish partitioning and write changes to disk -> *Yes* (`Tab`, `Enter` to select the `Yes` button)
 
@@ -266,11 +262,10 @@ Then set up LXC and the rest with the following, which is a complex jumble of se
 # the version of lxc-start in Debian needs to run as root, so make sure
 # that the build script can execute it without providing a password
 echo "%sudo ALL=NOPASSWD: /usr/bin/lxc-start" > /etc/sudoers.d/gitian-lxc
-echo "%sudo ALL=NOPASSWD: /usr/bin/lxc-execute" >> /etc/sudoers.d/gitian-lxc
 # make /etc/rc.local script that sets up bridge between guest and host
 echo '#!/bin/sh -e' > /etc/rc.local
-echo 'brctl addbr lxcbr0' >> /etc/rc.local
-echo 'ifconfig lxcbr0 10.0.3.2/24 up' >> /etc/rc.local
+echo 'brctl addbr br0' >> /etc/rc.local
+echo 'ifconfig br0 10.0.3.2/24 up' >> /etc/rc.local
 echo 'iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE' >> /etc/rc.local
 echo 'echo 1 > /proc/sys/net/ipv4/ip_forward' >> /etc/rc.local
 echo 'exit 0' >> /etc/rc.local
@@ -305,19 +300,18 @@ cd ..
 
 **Note**: When sudo asks for a password, enter the password for the user *debian* not for *root*.
 
-Clone the git repositories for Dash Core and Gitian.
+Clone the git repositories for Fonero Core and Gitian.
 
 ```bash
 git clone https://github.com/devrandom/gitian-builder.git
-git clone https://github.com/dashpay/dash
-git clone https://github.com/dashpay/gitian.sigs.git
+git clone https://github.com/fonero-project/fonero
 ```
 
 Setting up the Gitian image
 -------------------------
 
 Gitian needs a virtual image of the operating system to build in.
-Currently this is Ubuntu Trusty x86_64.
+Currently this is Ubuntu Precise x86_64.
 This image will be copied and used every time that a build is started to
 make sure that the build is deterministic.
 Creating the image will take a while, but only has to be done once.
@@ -344,19 +338,17 @@ There will be a lot of warnings printed during the build of the image. These can
 Getting and building the inputs
 --------------------------------
 
-At this point you have two options, you can either use the automated script (found in [contrib/gitian-build.sh](/contrib/gitian-build.sh)) or you could manually do everything by following this guide. If you're using the automated script, then run it with the "--setup" command. Afterwards, run it with the "--build" command (example: "contrib/gitian-building.sh -b signer 0.13.0"). Otherwise ignore this.
-
-Follow the instructions in [doc/release-process.md](release-process.md#fetch-and-create-inputs-first-time-or-when-dependency-versions-change)
-in the Dash Core repository under 'Fetch and create inputs' to install sources which require
+Follow the instructions in [doc/release-process.md](release-process.md#fetch-and-build-inputs-first-time-or-when-dependency-versions-change)
+in the Fonero Core repository under 'Fetch and build inputs' to install sources which require
 manual intervention. Also optionally follow the next step: 'Seed the Gitian sources cache
 and offline git repositories' which will fetch the remaining files required for building
 offline.
 
-Building Dash Core
+Building Fonero Core
 ----------------
 
-To build Dash Core (for Linux, OS X and Windows) just follow the steps under 'perform
-Gitian builds' in [doc/release-process.md](release-process.md#perform-gitian-builds) in the Dash Core repository.
+To build Fonero Core (for Linux, OS X and Windows) just follow the steps under 'perform
+Gitian builds' in [doc/release-process.md](release-process.md#perform-gitian-builds) in the Fonero Core repository.
 
 This may take some time as it will build all the dependencies needed for each descriptor.
 These dependencies will be cached after a successful build to avoid rebuilding them when possible.
@@ -371,14 +363,14 @@ tail -f var/build.log
 Output from `gbuild` will look something like
 
 ```bash
-    Initialized empty Git repository in /home/debian/gitian-builder/inputs/dash/.git/
+    Initialized empty Git repository in /home/debian/gitian-builder/inputs/fonero/.git/
     remote: Counting objects: 57959, done.
     remote: Total 57959 (delta 0), reused 0 (delta 0), pack-reused 57958
     Receiving objects: 100% (57959/57959), 53.76 MiB | 484.00 KiB/s, done.
     Resolving deltas: 100% (41590/41590), done.
-    From https://github.com/dashpay/dash
+    From https://github.com/fonero-project/fonero
     ... (new tags, new branch etc)
-    --- Building for trusty amd64 ---
+    --- Building for precise amd64 ---
     Stopping target if it is up
     Making a new image copy
     stdin: is not a tty
@@ -402,18 +394,18 @@ and inputs.
 
 For example:
 ```bash
-URL=https://github.com/crowning-/dash.git
+URL=https://github.com/crowning-/fonero.git
 COMMIT=b616fb8ef0d49a919b72b0388b091aaec5849b96
-./bin/gbuild --commit dash=${COMMIT} --url dash=${URL} ../dash/contrib/gitian-descriptors/gitian-linux.yml
-./bin/gbuild --commit dash=${COMMIT} --url dash=${URL} ../dash/contrib/gitian-descriptors/gitian-win.yml
-./bin/gbuild --commit dash=${COMMIT} --url dash=${URL} ../dash/contrib/gitian-descriptors/gitian-osx.yml
+./bin/gbuild --commit fonero=${COMMIT} --url fonero=${URL} ../fonero/contrib/gitian-descriptors/gitian-linux.yml
+./bin/gbuild --commit fonero=${COMMIT} --url fonero=${URL} ../fonero/contrib/gitian-descriptors/gitian-win.yml
+./bin/gbuild --commit fonero=${COMMIT} --url fonero=${URL} ../fonero/contrib/gitian-descriptors/gitian-osx.yml
 ```
 
 Building fully offline
 -----------------------
 
 For building fully offline including attaching signatures to unsigned builds, the detached-sigs repository
-and the dash git repository with the desired tag must both be available locally, and then gbuild must be
+and the fonero git repository with the desired tag must both be available locally, and then gbuild must be
 told where to find them. It also requires an apt-cacher-ng which is fully-populated but set to offline mode, or
 manually disabling gitian-builder's use of apt-get to update the VM build environment.
 
@@ -427,14 +419,14 @@ So, if you use LXC:
 export PATH="$PATH":/path/to/gitian-builder/libexec
 export USE_LXC=1
 cd /path/to/gitian-builder
-./libexec/make-clean-vm --suite trusty --arch amd64
+./libexec/make-clean-vm --suite precise --arch amd64
 
-LXC_ARCH=amd64 LXC_SUITE=trusty on-target -u root apt-get update
-LXC_ARCH=amd64 LXC_SUITE=trusty on-target -u root \
+LXC_ARCH=amd64 LXC_SUITE=precise on-target -u root apt-get update
+LXC_ARCH=amd64 LXC_SUITE=precise on-target -u root \
   -e DEBIAN_FRONTEND=noninteractive apt-get --no-install-recommends -y install \
-  $( sed -ne '/^packages:/,/[^-] .*/ {/^- .*/{s/"//g;s/- //;p}}' ../dash/contrib/gitian-descriptors/*|sort|uniq )
-LXC_ARCH=amd64 LXC_SUITE=trusty on-target -u root apt-get -q -y purge grub
-LXC_ARCH=amd64 LXC_SUITE=trusty on-target -u root -e DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
+  $( sed -ne '/^packages:/,/[^-] .*/ {/^- .*/{s/"//g;s/- //;p}}' ../fonero/contrib/gitian-descriptors/*|sort|uniq )
+LXC_ARCH=amd64 LXC_SUITE=precise on-target -u root apt-get -q -y purge grub
+LXC_ARCH=amd64 LXC_SUITE=precise on-target -u root -e DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
 ```
 
 And then set offline mode for apt-cacher-ng:
@@ -452,12 +444,12 @@ Then when building, override the remote URLs that gbuild would otherwise pull fr
 ```bash
 
 cd /some/root/path/
-git clone https://github.com/dashpay/dash-detached-sigs.git
+git clone https://github.com/fonero-project/fonero-detached-sigs.git
 
-BTCPATH=/some/root/path/dash
-SIGPATH=/some/root/path/dash-detached-sigs
+BTCPATH=/some/root/path/fonero.git
+SIGPATH=/some/root/path/fonero-detached-sigs.git
 
-./bin/gbuild --url dash=${BTCPATH},signature=${SIGPATH} ../dash/contrib/gitian-descriptors/gitian-win-signer.yml
+./bin/gbuild --url fonero=${BTCPATH},signature=${SIGPATH} ../fonero/contrib/gitian-descriptors/gitian-win-signer.yml
 ```
 
 Signing externally
@@ -472,9 +464,9 @@ When you execute `gsign` you will get an error from GPG, which can be ignored. C
 in `gitian.sigs` to your signing machine and do
 
 ```bash
-    gpg --detach-sign ${VERSION}-linux/${SIGNER}/dash-linux-build.assert
-    gpg --detach-sign ${VERSION}-win/${SIGNER}/dash-win-build.assert
-    gpg --detach-sign ${VERSION}-osx-unsigned/${SIGNER}/dash-osx-build.assert
+    gpg --detach-sign ${VERSION}-linux/${SIGNER}/fonero-linux-build.assert
+    gpg --detach-sign ${VERSION}-win/${SIGNER}/fonero-win-build.assert
+    gpg --detach-sign ${VERSION}-osx-unsigned/${SIGNER}/fonero-osx-build.assert
 ```
 
 This will create the `.sig` files that can be committed together with the `.assert` files to assert your
@@ -484,6 +476,6 @@ Uploading signatures (not yet implemented)
 ---------------------
 
 In the future it will be possible to push your signatures (both the `.assert` and `.assert.sig` files) to the
-[dash/gitian.sigs](https://github.com/dashpay/gitian.sigs/) repository, or if that's not possible to create a pull
+[fonero/gitian.sigs](https://github.com/fonero-project/gitian.sigs/) repository, or if that's not possible to create a pull
 request.
 There will be an official announcement when this repository is online.

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Fonero
+Comment=Fonero P2P Cryptocurrency
+Comment[fr]=Fonero, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=Fonero, eşten eşe kriptografik sanal para birimi
+Exec=fonero-qt %u
+Terminal=false
+Type=Application
+Icon=fonero128
+MimeType=x-scheme-handler/fonero;
+Categories=Office;Finance;

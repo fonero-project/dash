@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifdef HAVE_CONFIG_H
-#include "config/dash-config.h"
+#include "config/fonero-config.h"
 #endif
 
 #include "netbase.h"
@@ -89,9 +89,30 @@ bool static LookupIntern(const char *pszName, std::vector<CNetAddr>& vIP, unsign
         }
     }
 
+#ifdef HAVE_GETADDRINFO_A
+    struct in_addr ipv4_addr;
+#ifdef HAVE_INET_PTON
+    if (inet_pton(AF_INET, pszName, &ipv4_addr) > 0) {
+        vIP.push_back(CNetAddr(ipv4_addr));
+        return true;
+    }
+
+    struct in6_addr ipv6_addr;
+    if (inet_pton(AF_INET6, pszName, &ipv6_addr) > 0) {
+        vIP.push_back(CNetAddr(ipv6_addr));
+        return true;
+    }
+#else
+    ipv4_addr.s_addr = inet_addr(pszName);
+    if (ipv4_addr.s_addr != INADDR_NONE) {
+        vIP.push_back(CNetAddr(ipv4_addr));
+        return true;
+    }
+#endif
+#endif
+
     struct addrinfo aiHint;
     memset(&aiHint, 0, sizeof(struct addrinfo));
-
     aiHint.ai_socktype = SOCK_STREAM;
     aiHint.ai_protocol = IPPROTO_TCP;
     aiHint.ai_family = AF_UNSPEC;
@@ -100,8 +121,33 @@ bool static LookupIntern(const char *pszName, std::vector<CNetAddr>& vIP, unsign
 #else
     aiHint.ai_flags = fAllowLookup ? AI_ADDRCONFIG : AI_NUMERICHOST;
 #endif
+
     struct addrinfo *aiRes = NULL;
+#ifdef HAVE_GETADDRINFO_A
+    struct gaicb gcb, *query = &gcb;
+    memset(query, 0, sizeof(struct gaicb));
+    gcb.ar_name = pszName;
+    gcb.ar_request = &aiHint;
+    int nErr = getaddrinfo_a(GAI_NOWAIT, &query, 1, NULL);
+    if (nErr)
+        return false;
+
+    do {
+        // Should set the timeout limit to a reasonable value to avoid
+        // generating unnecessary checking call during the polling loop,
+        // while it can still response to stop request quick enough.
+        // 2 seconds looks fine in our situation.
+        struct timespec ts = { 2, 0 };
+        gai_suspend(&query, 1, &ts);
+        boost::this_thread::interruption_point();
+
+        nErr = gai_error(query);
+        if (0 == nErr)
+            aiRes = query->ar_result;
+    } while (nErr == EAI_INPROGRESS);
+#else
     int nErr = getaddrinfo(pszName, NULL, &aiHint, &aiRes);
+#endif
     if (nErr)
         return false;
 
@@ -117,8 +163,7 @@ bool static LookupIntern(const char *pszName, std::vector<CNetAddr>& vIP, unsign
         if (aiTrav->ai_family == AF_INET6)
         {
             assert(aiTrav->ai_addrlen >= sizeof(sockaddr_in6));
-            struct sockaddr_in6* s6 = (struct sockaddr_in6*) aiTrav->ai_addr;
-            vIP.push_back(CNetAddr(s6->sin6_addr, s6->sin6_scope_id));
+            vIP.push_back(CNetAddr(((struct sockaddr_in6*)(aiTrav->ai_addr))->sin6_addr));
         }
 
         aiTrav = aiTrav->ai_next;
@@ -254,25 +299,10 @@ struct ProxyCredentials
     std::string password;
 };
 
-std::string Socks5ErrorString(int err)
-{
-    switch(err) {
-        case 0x01: return "general failure";
-        case 0x02: return "connection not allowed";
-        case 0x03: return "network unreachable";
-        case 0x04: return "host unreachable";
-        case 0x05: return "connection refused";
-        case 0x06: return "TTL expired";
-        case 0x07: return "protocol error";
-        case 0x08: return "address type not supported";
-        default:   return "unknown";
-    }
-}
-
 /** Connect using SOCKS5 (as described in RFC1928) */
 static bool Socks5(const std::string& strDest, int port, const ProxyCredentials *auth, SOCKET& hSocket)
 {
-    LogPrint("net", "SOCKS5 connecting %s\n", strDest);
+    LogPrintf("SOCKS5 connecting %s\n", strDest);
     if (strDest.size() > 255) {
         CloseSocket(hSocket);
         return error("Hostname too long");
@@ -288,7 +318,7 @@ static bool Socks5(const std::string& strDest, int port, const ProxyCredentials 
         vSocks5Init.push_back(0x01); // # METHODS
         vSocks5Init.push_back(0x00); // X'00' NO AUTHENTICATION REQUIRED
     }
-    ssize_t ret = send(hSocket, (const char*)vSocks5Init.data(), vSocks5Init.size(), MSG_NOSIGNAL);
+    ssize_t ret = send(hSocket, (const char*)begin_ptr(vSocks5Init), vSocks5Init.size(), MSG_NOSIGNAL);
     if (ret != (ssize_t)vSocks5Init.size()) {
         CloseSocket(hSocket);
         return error("Error sending to proxy");
@@ -296,8 +326,7 @@ static bool Socks5(const std::string& strDest, int port, const ProxyCredentials 
     char pchRet1[2];
     if (!InterruptibleRecv(pchRet1, 2, SOCKS5_RECV_TIMEOUT, hSocket)) {
         CloseSocket(hSocket);
-        LogPrintf("Socks5() connect to %s:%d failed: InterruptibleRecv() timeout or other failure\n", strDest, port);
-        return false;
+        return error("Error reading proxy response");
     }
     if (pchRet1[0] != 0x05) {
         CloseSocket(hSocket);
@@ -313,7 +342,7 @@ static bool Socks5(const std::string& strDest, int port, const ProxyCredentials 
         vAuth.insert(vAuth.end(), auth->username.begin(), auth->username.end());
         vAuth.push_back(auth->password.size());
         vAuth.insert(vAuth.end(), auth->password.begin(), auth->password.end());
-        ret = send(hSocket, (const char*)vAuth.data(), vAuth.size(), MSG_NOSIGNAL);
+        ret = send(hSocket, (const char*)begin_ptr(vAuth), vAuth.size(), MSG_NOSIGNAL);
         if (ret != (ssize_t)vAuth.size()) {
             CloseSocket(hSocket);
             return error("Error sending authentication to proxy");
@@ -343,7 +372,7 @@ static bool Socks5(const std::string& strDest, int port, const ProxyCredentials 
     vSocks5.insert(vSocks5.end(), strDest.begin(), strDest.end());
     vSocks5.push_back((port >> 8) & 0xFF);
     vSocks5.push_back((port >> 0) & 0xFF);
-    ret = send(hSocket, (const char*)vSocks5.data(), vSocks5.size(), MSG_NOSIGNAL);
+    ret = send(hSocket, (const char*)begin_ptr(vSocks5), vSocks5.size(), MSG_NOSIGNAL);
     if (ret != (ssize_t)vSocks5.size()) {
         CloseSocket(hSocket);
         return error("Error sending to proxy");
@@ -358,10 +387,19 @@ static bool Socks5(const std::string& strDest, int port, const ProxyCredentials 
         return error("Proxy failed to accept request");
     }
     if (pchRet2[1] != 0x00) {
-        // Failures to connect to a peer that are not proxy errors
         CloseSocket(hSocket);
-        LogPrintf("Socks5() connect to %s:%d failed: %s\n", strDest, port, Socks5ErrorString(pchRet2[1]));
-        return false;
+        switch (pchRet2[1])
+        {
+            case 0x01: return error("Proxy error: general failure");
+            case 0x02: return error("Proxy error: connection not allowed");
+            case 0x03: return error("Proxy error: network unreachable");
+            case 0x04: return error("Proxy error: host unreachable");
+            case 0x05: return error("Proxy error: connection refused");
+            case 0x06: return error("Proxy error: TTL expired");
+            case 0x07: return error("Proxy error: protocol error");
+            case 0x08: return error("Proxy error: address type not supported");
+            default:   return error("Proxy error: unknown");
+        }
     }
     if (pchRet2[2] != 0x00) {
         CloseSocket(hSocket);
@@ -393,7 +431,7 @@ static bool Socks5(const std::string& strDest, int port, const ProxyCredentials 
         CloseSocket(hSocket);
         return error("Error reading from proxy");
     }
-    LogPrint("net", "SOCKS5 connected %s\n", strDest);
+    LogPrintf("SOCKS5 connected %s\n", strDest);
     return true;
 }
 
@@ -546,8 +584,8 @@ static bool ConnectThroughProxy(const proxyType &proxy, const std::string& strDe
     // do socks negotiation
     if (proxy.randomize_credentials) {
         ProxyCredentials random_auth;
-        static std::atomic_int counter;
-        random_auth.username = random_auth.password = strprintf("%i", counter++);
+        random_auth.username = strprintf("%i", insecure_rand());
+        random_auth.password = strprintf("%i", insecure_rand());
         if (!Socks5(strDest, (unsigned short)port, &random_auth, hSocket))
             return false;
     } else {
@@ -581,8 +619,8 @@ bool ConnectSocketByName(CService &addr, SOCKET& hSocketRet, const char *pszDest
 
     SplitHostPort(std::string(pszDest), port, strDest);
 
-    proxyType proxy;
-    GetNameProxy(proxy);
+    proxyType nameProxy;
+    GetNameProxy(nameProxy);
 
     std::vector<CService> addrResolved;
     if (Lookup(strDest.c_str(), addrResolved, port, fNameLookup && !HaveNameProxy(), 256)) {
@@ -596,7 +634,7 @@ bool ConnectSocketByName(CService &addr, SOCKET& hSocketRet, const char *pszDest
 
     if (!HaveNameProxy())
         return false;
-    return ConnectThroughProxy(proxy, strDest, port, hSocketRet, nTimeout, outProxyConnectionFailed);
+    return ConnectThroughProxy(nameProxy, strDest, port, hSocketRet, nTimeout, outProxyConnectionFailed);
 }
 
 bool LookupSubNet(const char* pszName, CSubNet& ret)

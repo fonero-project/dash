@@ -76,7 +76,7 @@ public:
 
     virtual ~CGovernanceException() throw() {}
 
-    virtual const char* what() const throw() override 
+    virtual const char* what() const throw()
     {
         return strMessage.c_str();
     }

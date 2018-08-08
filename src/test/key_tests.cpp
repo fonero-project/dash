@@ -9,24 +9,26 @@
 #include "uint256.h"
 #include "util.h"
 #include "utilstrencodings.h"
-#include "test/test_dash.h"
+#include "test/test_fonero.h"
 
 #include <string>
 #include <vector>
 
 #include <boost/test/unit_test.hpp>
 
-static const std::string strSecret1     ("7qh6LYnLN2w2ntz2wwUhRUEgkQ2j8XB16FGw77ZRDZmC29bn7cD");
-static const std::string strSecret2     ("7rve4MxeWFQHGbSYH6J2yaaZd3MBUqoDEwN6ZAZ6ZHmhTT4r3hW");
-static const std::string strSecret1C    ("XBuxZHH6TqXUuaSjbVTFR1DQSYecxCB9QA1Koyx5tTc3ddhqEnhm");
-static const std::string strSecret2C    ("XHMkZqWcY6Zkoq1j42NBijD8z5N5FtNy2Wx7WyAfXX2HZgxry8cr");
+using namespace std;
+
+static const string strSecret1     ("7qh6LYnLN2w2ntz2wwUhRUEgkQ2j8XB16FGw77ZRDZmC29bn7cD");
+static const string strSecret2     ("7rve4MxeWFQHGbSYH6J2yaaZd3MBUqoDEwN6ZAZ6ZHmhTT4r3hW");
+static const string strSecret1C    ("XBuxZHH6TqXUuaSjbVTFR1DQSYecxCB9QA1Koyx5tTc3ddhqEnhm");
+static const string strSecret2C    ("XHMkZqWcY6Zkoq1j42NBijD8z5N5FtNy2Wx7WyAfXX2HZgxry8cr");
 static const CBitcoinAddress addr1 ("Xywgfc872nn5CKtpATCoAjZCc4v96pJczy");
 static const CBitcoinAddress addr2 ("XpmouUj9KKJ99ZuU331ZS1KqsboeFnLGgK");
 static const CBitcoinAddress addr1C("XxV9h4Xmv6Pup8tVAQmH97K6grzvDwMG9F");
 static const CBitcoinAddress addr2C("Xn7ZrYdExuk79Dm7CJCw7sfUWi2qWJSbRy");
 
 
-static const std::string strAddressBad("Xta1praZQjyELweyMByXyiREw1ZRsjXzVP");
+static const string strAddressBad("Xta1praZQjyELweyMByXyiREw1ZRsjXzVP");
 
 
 #ifdef KEY_TESTS_DUMPINFO
@@ -35,7 +37,7 @@ void dumpKeyInfo(uint256 privkey)
     CKey key;
     key.resize(32);
     memcpy(&secret[0], &privkey, 32);
-    std::vector<unsigned char> sec;
+    vector<unsigned char> sec;
     sec.resize(32);
     memcpy(&sec[0], &secret[0], 32);
     printf("  * secret (hex): %s\n", HexStr(sec).c_str());
@@ -49,7 +51,7 @@ void dumpKeyInfo(uint256 privkey)
         printf("    * secret (base58): %s\n", bsecret.ToString().c_str());
         CKey key;
         key.SetSecret(secret, fCompressed);
-        std::vector<unsigned char> vchPubKey = key.GetPubKey();
+        vector<unsigned char> vchPubKey = key.GetPubKey();
         printf("    * pubkey (hex): %s\n", HexStr(vchPubKey).c_str());
         printf("    * address (base58): %s\n", CBitcoinAddress(vchPubKey).ToString().c_str());
     }
@@ -109,12 +111,12 @@ BOOST_AUTO_TEST_CASE(key_test1)
 
     for (int n=0; n<16; n++)
     {
-        std::string strMsg = strprintf("Very secret message %i: 11", n);
+        string strMsg = strprintf("Very secret message %i: 11", n);
         uint256 hashMsg = Hash(strMsg.begin(), strMsg.end());
 
         // normal signatures
 
-        std::vector<unsigned char> sign1, sign2, sign1C, sign2C;
+        vector<unsigned char> sign1, sign2, sign1C, sign2C;
 
         BOOST_CHECK(key1.Sign (hashMsg, sign1));
         BOOST_CHECK(key2.Sign (hashMsg, sign2));
@@ -143,7 +145,7 @@ BOOST_AUTO_TEST_CASE(key_test1)
 
         // compact signatures (with key recovery)
 
-        std::vector<unsigned char> csign1, csign2, csign1C, csign2C;
+        vector<unsigned char> csign1, csign2, csign1C, csign2C;
 
         BOOST_CHECK(key1.SignCompact (hashMsg, csign1));
         BOOST_CHECK(key2.SignCompact (hashMsg, csign2));
@@ -166,7 +168,7 @@ BOOST_AUTO_TEST_CASE(key_test1)
     // test deterministic signing
 
     std::vector<unsigned char> detsig, detsigc;
-    std::string strMsg = "Very deterministic message";
+    string strMsg = "Very deterministic message";
     uint256 hashMsg = Hash(strMsg.begin(), strMsg.end());
     BOOST_CHECK(key1.Sign(hashMsg, detsig));
     BOOST_CHECK(key1C.Sign(hashMsg, detsigc));

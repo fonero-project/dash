@@ -35,11 +35,7 @@ const char *FILTERADD="filteradd";
 const char *FILTERCLEAR="filterclear";
 const char *REJECT="reject";
 const char *SENDHEADERS="sendheaders";
-const char *SENDCMPCT="sendcmpct";
-const char *CMPCTBLOCK="cmpctblock";
-const char *GETBLOCKTXN="getblocktxn";
-const char *BLOCKTXN="blocktxn";
-// Dash message types
+// Fonero message types
 const char *TXLOCKREQUEST="ix";
 const char *TXLOCKVOTE="txlvote";
 const char *SPORK="spork";
@@ -47,11 +43,11 @@ const char *GETSPORKS="getsporks";
 const char *MASTERNODEPAYMENTVOTE="mnw";
 const char *MASTERNODEPAYMENTBLOCK="mnwb";
 const char *MASTERNODEPAYMENTSYNC="mnget";
-const char *MNBUDGETSYNC="mnvs"; // deprecated since 12.1
-const char *MNBUDGETVOTE="mvote"; // deprecated since 12.1
-const char *MNBUDGETPROPOSAL="mprop"; // deprecated since 12.1
-const char *MNBUDGETFINAL="fbs"; // deprecated since 12.1
-const char *MNBUDGETFINALVOTE="fbvote"; // deprecated since 12.1
+const char *MNBUDGETSYNC="mnvs"; // depreciated since 12.1
+const char *MNBUDGETVOTE="mvote"; // depreciated since 12.1
+const char *MNBUDGETPROPOSAL="mprop"; // depreciated since 12.1
+const char *MNBUDGETFINAL="fbs"; // depreciated since 12.1
+const char *MNBUDGETFINALVOTE="fbvote"; // depreciated since 12.1
 const char *MNQUORUM="mn quorum"; // not implemented
 const char *MNANNOUNCE="mnb";
 const char *MNPING="mnp";
@@ -77,17 +73,17 @@ static const char* ppszTypeName[] =
     NetMsgType::TX,
     NetMsgType::BLOCK,
     "filtered block", // Should never occur
-    // Dash message types
+    // Fonero message types
     // NOTE: include non-implmented here, we must keep this list in sync with enum in protocol.h
     NetMsgType::TXLOCKREQUEST,
     NetMsgType::TXLOCKVOTE,
     NetMsgType::SPORK,
     NetMsgType::MASTERNODEPAYMENTVOTE,
     NetMsgType::MASTERNODEPAYMENTBLOCK, // reusing, was MNSCANERROR previousely, was NOT used in 12.0, we need this for inv
-    NetMsgType::MNBUDGETVOTE, // deprecated since 12.1
-    NetMsgType::MNBUDGETPROPOSAL, // deprecated since 12.1
-    NetMsgType::MNBUDGETFINAL, // deprecated since 12.1
-    NetMsgType::MNBUDGETFINALVOTE, // deprecated since 12.1
+    NetMsgType::MNBUDGETVOTE, // depreciated since 12.1
+    NetMsgType::MNBUDGETPROPOSAL, // depreciated since 12.1
+    NetMsgType::MNBUDGETFINAL, // depreciated since 12.1
+    NetMsgType::MNBUDGETFINALVOTE, // depreciated since 12.1
     NetMsgType::MNQUORUM, // not implemented
     NetMsgType::MNANNOUNCE,
     NetMsgType::MNPING,
@@ -95,7 +91,6 @@ static const char* ppszTypeName[] =
     NetMsgType::MNGOVERNANCEOBJECT,
     NetMsgType::MNGOVERNANCEOBJECTVOTE,
     NetMsgType::MNVERIFY,
-    "compact block", // Should never occur
 };
 
 /** All known message types. Keep this in the same order as the list of
@@ -124,11 +119,7 @@ const static std::string allNetMessageTypes[] = {
     NetMsgType::FILTERCLEAR,
     NetMsgType::REJECT,
     NetMsgType::SENDHEADERS,
-    NetMsgType::SENDCMPCT,
-    NetMsgType::CMPCTBLOCK,
-    NetMsgType::GETBLOCKTXN,
-    NetMsgType::BLOCKTXN,
-    // Dash message types
+    // Fonero message types
     // NOTE: do NOT include non-implmented here, we want them to be "Unknown command" in ProcessMessage()
     NetMsgType::TXLOCKREQUEST,
     NetMsgType::TXLOCKVOTE,

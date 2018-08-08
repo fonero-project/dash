@@ -10,10 +10,10 @@
 
 /**
  * Name of client reported in the 'version' message. Report the same name
- * for both dashd and dash-qt, to make it harder for attackers to
+ * for both fonerod and fonero-qt, to make it harder for attackers to
  * target servers or GUI users specifically.
  */
-const std::string CLIENT_NAME("Dash Core");
+const std::string CLIENT_NAME("Fonero Core");
 
 /**
  * Client version number
@@ -42,10 +42,11 @@ const std::string CLIENT_NAME("Dash Core");
 #include "build.h"
 #endif
 
-//! git will put "#define GIT_ARCHIVE 1" on the next line inside archives. $Format:%n#define GIT_ARCHIVE 1$
+//! git will put "#define GIT_ARCHIVE 1" on the next line inside archives. 
+#define GIT_ARCHIVE 1
 #ifdef GIT_ARCHIVE
-#define GIT_COMMIT_ID "$Format:%h$"
-#define GIT_COMMIT_DATE "$Format:%cD$"
+#define GIT_COMMIT_ID "e596762ca22d"
+#define GIT_COMMIT_DATE "Sat, 19 May 2018 08:31:49 +0300"
 #endif
 
 #define BUILD_DESC_WITH_SUFFIX(maj, min, rev, build, suffix) \
@@ -67,9 +68,18 @@ const std::string CLIENT_NAME("Dash Core");
 #endif
 #endif
 
-const std::string CLIENT_BUILD(BUILD_DESC CLIENT_VERSION_SUFFIX);
+#ifndef BUILD_DATE
+#ifdef GIT_COMMIT_DATE
+#define BUILD_DATE GIT_COMMIT_DATE
+#else
+#define BUILD_DATE __DATE__ ", " __TIME__
+#endif
+#endif
 
-std::string FormatVersion(int nVersion)
+const std::string CLIENT_BUILD(BUILD_DESC CLIENT_VERSION_SUFFIX);
+const std::string CLIENT_DATE(BUILD_DATE);
+
+static std::string FormatVersion(int nVersion)
 {
     if (nVersion % 100 == 0)
         return strprintf("%d.%d.%d", nVersion / 1000000, (nVersion / 10000) % 100, (nVersion / 100) % 100);

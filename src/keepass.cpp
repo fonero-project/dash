@@ -18,6 +18,8 @@
 #include "util.h"
 #include "utilstrencodings.h"
 
+#include <boost/foreach.hpp>
+
 #include <event2/event.h>
 #include <event2/http.h>
 #include <event2/buffer.h>
@@ -122,12 +124,12 @@ void CKeePassIntegrator::init()
     }
 }
 
-void CKeePassIntegrator::CKeePassRequest::addStrParameter(const std::string& strName, const std::string& strValue)
+void CKeePassIntegrator::CKeePassRequest::addStrParameter(std::string strName, std::string strValue)
 {
     requestObj.push_back(Pair(strName, strValue));
 }
 
-void CKeePassIntegrator::CKeePassRequest::addStrParameter(const std::string& strName, const SecureString& sValue)
+void CKeePassIntegrator::CKeePassRequest::addStrParameter(std::string strName, SecureString sValue)
 {
     std::string sCipherValue;
 
@@ -155,7 +157,7 @@ void CKeePassIntegrator::CKeePassRequest::init()
     addStrParameter("RequestType", strType);
 }
 
-void CKeePassIntegrator::CKeePassResponse::parseResponse(const std::string& strResponse)
+void CKeePassIntegrator::CKeePassResponse::parseResponse(std::string strResponse)
 {
     UniValue responseValue;
     if(!responseValue.read(strResponse))
@@ -171,12 +173,12 @@ void CKeePassIntegrator::CKeePassResponse::parseResponse(const std::string& strR
     strIV = DecodeBase64(getStr("Nonce"));
 }
 
-std::string CKeePassIntegrator::CKeePassResponse::getStr(const std::string& strName)
+std::string CKeePassIntegrator::CKeePassResponse::getStr(std::string strName)
 {
     return responseObj[strName].get_str();
 }
 
-SecureString CKeePassIntegrator::CKeePassResponse::getSecureStr(const std::string& strName)
+SecureString CKeePassIntegrator::CKeePassResponse::getSecureStr(std::string strName)
 {
     std::string strValueBase64Encrypted(responseObj[strName].get_str());
     SecureString sValue;
@@ -193,7 +195,7 @@ SecureString CKeePassIntegrator::CKeePassResponse::getSecureStr(const std::strin
     return sValue;
 }
 
-SecureString CKeePassIntegrator::CKeePassResponse::decrypt(const std::string& strValueBase64Encrypted)
+SecureString CKeePassIntegrator::CKeePassResponse::decrypt(std::string strValueBase64Encrypted)
 {
     std::string strValueEncrypted = DecodeBase64(strValueBase64Encrypted);
     SecureString sValue;
@@ -230,7 +232,8 @@ SecureString CKeePassIntegrator::generateRandomKey(size_t nSize)
     SecureString sKey;
     sKey.resize(nSize);
 
-    GetStrongRandBytes((unsigned char *) &sKey[0], nSize);
+    RandAddSeedPerfmon();
+    GetRandBytes((unsigned char *) &sKey[0], nSize);
 
     return sKey;
 }
@@ -240,13 +243,13 @@ std::string CKeePassIntegrator::constructHTTPPost(const std::string& strMsg, con
 {
     std::ostringstream streamOut;
     streamOut << "POST / HTTP/1.1\r\n"
-      << "User-Agent: dash-json-rpc/" << FormatFullVersion() << "\r\n"
+      << "User-Agent: fonero-json-rpc/" << FormatFullVersion() << "\r\n"
       << "Host: localhost\r\n"
       << "Content-Type: application/json\r\n"
       << "Content-Length: " << strMsg.size() << "\r\n"
       << "Connection: close\r\n"
       << "Accept: application/json\r\n";
-    for (const auto& item : mapRequestHeaders)
+    BOOST_FOREACH(const PAIRTYPE(std::string, std::string)& item, mapRequestHeaders)
         streamOut << item.first << ": " << item.second << "\r\n";
     streamOut << "\r\n" << strMsg;
 
@@ -286,7 +289,7 @@ static void http_request_done(struct evhttp_request *req, void *ctx)
 }
 
 // Send RPC message to KeePassHttp
-void CKeePassIntegrator::doHTTPPost(const std::string& sRequest, int& nStatusRet, std::string& strResponseRet)
+void CKeePassIntegrator::doHTTPPost(const std::string& sRequest, int& nStatus, std::string& strResponse)
 {
 //    // Prepare communication
 //    boost::asio::io_service io_service;
@@ -333,7 +336,7 @@ void CKeePassIntegrator::doHTTPPost(const std::string& sRequest, int& nStatusRet
     struct evkeyvalq *output_headers = evhttp_request_get_output_headers(req);
     assert(output_headers);
 //    s << "POST / HTTP/1.1\r\n"
-    evhttp_add_header(output_headers, "User-Agent", ("dash-json-rpc/" + FormatFullVersion()).c_str());
+    evhttp_add_header(output_headers, "User-Agent", ("fonero-json-rpc/" + FormatFullVersion()).c_str());
     evhttp_add_header(output_headers, "Host", KEEPASS_HTTP_HOST);
     evhttp_add_header(output_headers, "Accept", "application/json");
     evhttp_add_header(output_headers, "Content-Type", "application/json");
@@ -402,7 +405,7 @@ void CKeePassIntegrator::doHTTPPost(const std::string& sRequest, int& nStatusRet
 //    ReadHTTPMessage(response_stream, mapHeaders, strResponse, nProto, std::numeric_limits<size_t>::max());
 //    LogPrint("keepass", "CKeePassIntegrator::doHTTPPost -- Processed body\n");
 
-    nStatusRet = response.nStatus;
+    nStatus = response.nStatus;
     if (response.nStatus == 0)
         throw std::runtime_error("couldn't connect to server");
     else if (response.nStatus >= 400 && response.nStatus != HTTP_BAD_REQUEST && response.nStatus != HTTP_NOT_FOUND && response.nStatus != HTTP_INTERNAL_SERVER_ERROR)
@@ -418,7 +421,7 @@ void CKeePassIntegrator::doHTTPPost(const std::string& sRequest, int& nStatusRet
     if (reply.empty())
         throw std::runtime_error("expected reply to have result, error and id properties");
 
-    strResponseRet = valReply.get_str();
+    strResponse = valReply.get_str();
 }
 
 void CKeePassIntegrator::rpcTestAssociation(bool bTriggerUnlock)
@@ -491,7 +494,7 @@ void CKeePassIntegrator::rpcSetLogin(const SecureString& sWalletPass, const Secu
     LogPrint("keepass", "CKeePassIntegrator::rpcSetLogin -- send Url: %s\n", sUrl);
 
     //request.addStrParameter("SubmitUrl", sSubmitUrl); // Is used to construct the entry title
-    request.addStrParameter("Login", SecureString("dash"));
+    request.addStrParameter("Login", SecureString("fonero"));
     request.addStrParameter("Password", sWalletPass);
     if(sEntryId.size() != 0)
     {
@@ -534,13 +537,13 @@ SecureString CKeePassIntegrator::generateKeePassKey()
     return sKeyBase64;
 }
 
-void CKeePassIntegrator::rpcAssociate(std::string& strIdRet, SecureString& sKeyBase64Ret)
+void CKeePassIntegrator::rpcAssociate(std::string& strId, SecureString& sKeyBase64)
 {
     sKey = generateRandomKey(KEEPASS_CRYPTO_KEY_SIZE);
     CKeePassRequest request(sKey, "associate");
 
-    sKeyBase64Ret = EncodeBase64Secure(sKey);
-    request.addStrParameter("Key", std::string(&sKeyBase64Ret[0], sKeyBase64Ret.size()));
+    sKeyBase64 = EncodeBase64Secure(sKey);
+    request.addStrParameter("Key", std::string(&sKeyBase64[0], sKeyBase64.size()));
 
     int nStatus;
     std::string strResponse;
@@ -569,7 +572,7 @@ void CKeePassIntegrator::rpcAssociate(std::string& strIdRet, SecureString& sKeyB
     }
 
     // If we got here, we were successful. Return the information
-    strIdRet = response.getStr("Id");
+    strId = response.getStr("Id");
 }
 
 // Retrieve wallet passphrase from KeePass

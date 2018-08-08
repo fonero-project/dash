@@ -15,8 +15,7 @@
 
 struct CDNSSeedData {
     std::string name, host;
-    bool supportsServiceBitsFiltering;
-    CDNSSeedData(const std::string &strName, const std::string &strHost, bool supportsServiceBitsFilteringIn = false) : name(strName), host(strHost), supportsServiceBitsFiltering(supportsServiceBitsFilteringIn) {}
+    CDNSSeedData(const std::string &strName, const std::string &strHost) : name(strName), host(strHost) {}
 };
 
 struct SeedSpec6 {
@@ -28,17 +27,14 @@ typedef std::map<int, uint256> MapCheckpoints;
 
 struct CCheckpointData {
     MapCheckpoints mapCheckpoints;
-};
-
-struct ChainTxData {
-    int64_t nTime;
-    int64_t nTxCount;
-    double dTxRate;
+    int64_t nTimeLastCheckpoint;
+    int64_t nTransactionsLastCheckpoint;
+    double fTransactionsPerDay;
 };
 
 /**
  * CChainParams defines various tweakable parameters of a given instance of the
- * Dash system. There are three: the main network on which people trade goods
+ * Fonero system. There are three: the main network on which people trade goods
  * and services, the public test network which gets reset from time to time and
  * a regression test mode which is intended for private networks only. It has
  * minimal difficulty to ensure that blocks can be found instantly.
@@ -62,20 +58,19 @@ public:
     int GetDefaultPort() const { return nDefaultPort; }
 
     const CBlock& GenesisBlock() const { return genesis; }
-    const CBlock& DevNetGenesisBlock() const { return devnetGenesis; }
     /** Make miner wait to have peers to avoid wasting work */
     bool MiningRequiresPeers() const { return fMiningRequiresPeers; }
     /** Default value for -checkmempool and -checkblockindex argument */
     bool DefaultConsistencyChecks() const { return fDefaultConsistencyChecks; }
     /** Policy: Filter transactions that do not match well-defined patterns */
     bool RequireStandard() const { return fRequireStandard; }
+    int64_t MaxTipAge() const { return nMaxTipAge; }
+    int64_t DelayGetHeadersTime() const { return nDelayGetHeadersTime; }
     uint64_t PruneAfterHeight() const { return nPruneAfterHeight; }
     /** Make miner stop after a block is found. In RPC, don't return until nGenProcLimit blocks are generated */
     bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; }
-    /** Allow multiple addresses to be selected from the same network group (e.g. 192.168.x.x) */
-    bool AllowMultipleAddressesFromGroup() const { return fAllowMultipleAddressesFromGroup; }
-    /** Allow nodes with the same address and multiple ports */
-    bool AllowMultiplePorts() const { return fAllowMultiplePorts; }
+    /** In the future use NetworkIDString() for RPC fields */
+    bool TestnetToBeDeprecatedFieldRPC() const { return fTestnetToBeDeprecatedFieldRPC; }
     /** Return the BIP70 network string (main, test or regtest) */
     std::string NetworkIDString() const { return strNetworkID; }
     const std::vector<CDNSSeedData>& DNSSeeds() const { return vSeeds; }
@@ -83,10 +78,9 @@ public:
     int ExtCoinType() const { return nExtCoinType; }
     const std::vector<SeedSpec6>& FixedSeeds() const { return vFixedSeeds; }
     const CCheckpointData& Checkpoints() const { return checkpointData; }
-    const ChainTxData& TxData() const { return chainTxData; }
     int PoolMaxTransactions() const { return nPoolMaxTransactions; }
     int FulfilledRequestExpireTime() const { return nFulfilledRequestExpireTime; }
-    const std::string& SporkAddress() const { return strSporkAddress; }
+    std::string SporkPubKey() const { return strSporkPubKey; }
 protected:
     CChainParams() {}
 
@@ -95,25 +89,25 @@ protected:
     //! Raw pub key bytes for the broadcast alert signing key.
     std::vector<unsigned char> vAlertPubKey;
     int nDefaultPort;
+    long nMaxTipAge;
+    int64_t nDelayGetHeadersTime;
     uint64_t nPruneAfterHeight;
     std::vector<CDNSSeedData> vSeeds;
     std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
     int nExtCoinType;
     std::string strNetworkID;
     CBlock genesis;
-    CBlock devnetGenesis;
     std::vector<SeedSpec6> vFixedSeeds;
     bool fMiningRequiresPeers;
     bool fDefaultConsistencyChecks;
     bool fRequireStandard;
     bool fMineBlocksOnDemand;
-    bool fAllowMultipleAddressesFromGroup;
-    bool fAllowMultiplePorts;
+    bool fTestnetToBeDeprecatedFieldRPC;
     CCheckpointData checkpointData;
-    ChainTxData chainTxData;
     int nPoolMaxTransactions;
     int nFulfilledRequestExpireTime;
-    std::string strSporkAddress;
+    std::string strSporkPubKey;
+    std::string strMasternodePaymentsPubKey;
 };
 
 /**
@@ -132,10 +126,5 @@ CChainParams& Params(const std::string& chain);
  * @throws std::runtime_error when the chain is not supported.
  */
 void SelectParams(const std::string& chain);
-
-/**
- * Allows modifying the BIP9 regtest parameters.
- */
-void UpdateRegtestBIP9Parameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout);
 
 #endif // BITCOIN_CHAINPARAMS_H

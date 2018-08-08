@@ -29,7 +29,7 @@ CZMQNotificationInterface::~CZMQNotificationInterface()
     }
 }
 
-CZMQNotificationInterface* CZMQNotificationInterface::Create()
+CZMQNotificationInterface* CZMQNotificationInterface::CreateWithArguments(const std::map<std::string, std::string> &args)
 {
     CZMQNotificationInterface* notificationInterface = NULL;
     std::map<std::string, CZMQNotifierFactory> factories;
@@ -44,11 +44,11 @@ CZMQNotificationInterface* CZMQNotificationInterface::Create()
 
     for (std::map<std::string, CZMQNotifierFactory>::const_iterator i=factories.begin(); i!=factories.end(); ++i)
     {
-        std::string arg("-zmq" + i->first);
-        if (IsArgSet(arg))
+        std::map<std::string, std::string>::const_iterator j = args.find("-zmq" + i->first);
+        if (j!=args.end())
         {
             CZMQNotifierFactory factory = i->second;
-            std::string address = GetArg(arg, "");
+            std::string address = j->second;
             CZMQAbstractNotifier *notifier = factory();
             notifier->SetType(i->first);
             notifier->SetAddress(address);
@@ -146,7 +146,7 @@ void CZMQNotificationInterface::UpdatedBlockTip(const CBlockIndex *pindexNew, co
     }
 }
 
-void CZMQNotificationInterface::SyncTransaction(const CTransaction& tx, const CBlockIndex* pindex, int posInBlock)
+void CZMQNotificationInterface::SyncTransaction(const CTransaction &tx, const CBlock *pblock)
 {
     for (std::list<CZMQAbstractNotifier*>::iterator i = notifiers.begin(); i!=notifiers.end(); )
     {

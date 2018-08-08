@@ -30,7 +30,7 @@ class QUrl;
 class QWidget;
 QT_END_NAMESPACE
 
-/** Utility functions used by the Dash Qt UI.
+/** Utility functions used by the Fonero Qt UI.
  */
 namespace GUIUtil
 {
@@ -45,7 +45,7 @@ namespace GUIUtil
     void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent);
     void setupAmountWidget(QLineEdit *widget, QWidget *parent);
 
-    // Parse "dash:" URI into recipient object, return true on successful parsing
+    // Parse "fonero:" URI into recipient object, return true on successful parsing
     bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out);
     bool parseBitcoinURI(QString uri, SendCoinsRecipient *out);
     QString formatBitcoinURI(const SendCoinsRecipient &info);
@@ -114,7 +114,7 @@ namespace GUIUtil
     // Open debug.log
     void openDebugLogfile();
 	
-    // Open dash.conf
+    // Open fonero.conf
     void openConfigfile();	
 
     // Open masternode.conf
@@ -149,7 +149,7 @@ namespace GUIUtil
      * Also makes sure the column widths are never larger than the table's viewport.
      * In Qt, all columns are resizable from the right, but it's not intuitive resizing the last column from the right.
      * Usually our second to last columns behave as if stretched, and when on strech mode, columns aren't resizable
-     * interactively or programmatically.
+     * interactively or programatically.
      *
      * This helper object takes care of this issue.
      *

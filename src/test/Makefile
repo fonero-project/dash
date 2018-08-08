@@ -1,6 +1,6 @@
 all:
-	$(MAKE) -C .. dash_test
+	$(MAKE) -C .. fonero_test
 clean:
-	$(MAKE) -C .. dash_test_clean
+	$(MAKE) -C .. fonero_test_clean
 check:
-	$(MAKE) -C .. dash_test_check
+	$(MAKE) -C .. fonero_test_check

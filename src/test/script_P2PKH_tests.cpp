@@ -3,9 +3,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "script/script.h"
-#include "test/test_dash.h"
+#include "test/test_fonero.h"
 
 #include <boost/test/unit_test.hpp>
+
+using namespace std;
 
 BOOST_FIXTURE_TEST_SUITE(script_P2PKH_tests, BasicTestingSetup)
 
@@ -45,12 +47,12 @@ BOOST_AUTO_TEST_CASE(IsPayToPublicKeyHash)
     static const unsigned char missing2[] = {
         OP_DUP, OP_HASH160, 20, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     };
-    BOOST_CHECK(!CScript(missing2, missing2+sizeof(missing2)).IsPayToPublicKeyHash());
+    BOOST_CHECK(!CScript(missing2, missing2+sizeof(missing)).IsPayToPublicKeyHash());
 
     static const unsigned char tooshort[] = {
         OP_DUP, OP_HASH160, 2, 0,0, OP_EQUALVERIFY, OP_CHECKSIG
     };
-    BOOST_CHECK(!CScript(tooshort, tooshort+sizeof(tooshort)).IsPayToPublicKeyHash());
+    BOOST_CHECK(!CScript(tooshort, tooshort+sizeof(direct)).IsPayToPublicKeyHash());
 
 }
 

@@ -6,7 +6,7 @@
 #define BITCOIN_NETBASE_H
 
 #if defined(HAVE_CONFIG_H)
-#include "config/dash-config.h"
+#include "config/fonero-config.h"
 #endif
 
 #include "compat.h"
@@ -24,13 +24,12 @@ extern bool fNameLookup;
 static const int DEFAULT_CONNECT_TIMEOUT = 5000;
 //! -dns default
 static const int DEFAULT_NAME_LOOKUP = true;
-static const bool DEFAULT_ALLOWPRIVATENET = false;
 
 class proxyType
 {
 public:
     proxyType(): randomize_credentials(false) {}
-    proxyType(const CService &_proxy, bool _randomize_credentials=false): proxy(_proxy), randomize_credentials(_randomize_credentials) {}
+    proxyType(const CService &proxy, bool randomize_credentials=false): proxy(proxy), randomize_credentials(randomize_credentials) {}
 
     bool IsValid() const { return proxy.IsValid(); }
 

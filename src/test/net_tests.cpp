@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #include "addrman.h"
-#include "test/test_dash.h"
+#include "test/test_fonero.h"
 #include <string>
 #include <boost/test/unit_test.hpp>
 #include "hash.h"
@@ -12,32 +12,34 @@
 #include "netbase.h"
 #include "chainparams.h"
 
+using namespace std;
+
 class CAddrManSerializationMock : public CAddrMan
 {
 public:
-    virtual void Serialize(CDataStream& s) const = 0;
+    virtual void Serialize(CDataStream& s, int nType, int nVersionDummy) const = 0;
 
     //! Ensure that bucket placement is always the same for testing purposes.
     void MakeDeterministic()
     {
         nKey.SetNull();
-        insecure_rand = FastRandomContext(true);
+        seed_insecure_rand(true);
     }
 };
 
 class CAddrManUncorrupted : public CAddrManSerializationMock
 {
 public:
-    void Serialize(CDataStream& s) const override
+    void Serialize(CDataStream& s, int nType, int nVersionDummy) const
     {
-        CAddrMan::Serialize(s);
+        CAddrMan::Serialize(s, nType, nVersionDummy);
     }
 };
 
 class CAddrManCorrupted : public CAddrManSerializationMock
 {
 public:
-    void Serialize(CDataStream& s) const override
+    void Serialize(CDataStream& s, int nType, int nVersionDummy) const
     {
         // Produces corrupt output that claims addrman has 20 addrs when it only has one addr.
         unsigned char nVersion = 1;
@@ -60,13 +62,13 @@ public:
     }
 };
 
-CDataStream AddrmanToStream(CAddrManSerializationMock& _addrman)
+CDataStream AddrmanToStream(CAddrManSerializationMock& addrman)
 {
     CDataStream ssPeersIn(SER_DISK, CLIENT_VERSION);
     ssPeersIn << FLATDATA(Params().MessageStart());
-    ssPeersIn << _addrman;
+    ssPeersIn << addrman;
     std::string str = ssPeersIn.str();
-    std::vector<unsigned char> vchData(str.begin(), str.end());
+    vector<unsigned char> vchData(str.begin(), str.end());
     return CDataStream(vchData, SER_DISK, CLIENT_VERSION);
 }
 
@@ -134,7 +136,7 @@ BOOST_AUTO_TEST_CASE(caddrdb_read_corrupted)
     } catch (const std::exception& e) {
         exceptionThrown = true;
     }
-    // Even through de-serialization failed addrman is not left in a clean state.
+    // Even through de-serialization failed adddrman is not left in a clean state.
     BOOST_CHECK(addrman1.size() == 1);
     BOOST_CHECK(exceptionThrown);
 
@@ -162,12 +164,12 @@ BOOST_AUTO_TEST_CASE(cnode_simple_test)
     bool fInboundIn = false;
 
     // Test that fFeeler is false by default.
-    std::unique_ptr<CNode> pnode1(new CNode(id++, NODE_NETWORK, height, hSocket, addr, 0, 0, pszDest, fInboundIn));
+    CNode* pnode1 = new CNode(id++, NODE_NETWORK, height, hSocket, addr, pszDest, fInboundIn);
     BOOST_CHECK(pnode1->fInbound == false);
     BOOST_CHECK(pnode1->fFeeler == false);
 
     fInboundIn = true;
-    std::unique_ptr<CNode> pnode2(new CNode(id++, NODE_NETWORK, height, hSocket, addr, 1, 1, pszDest, fInboundIn));
+    CNode* pnode2 = new CNode(id++, NODE_NETWORK, height, hSocket, addr, pszDest, fInboundIn);
     BOOST_CHECK(pnode2->fInbound == true);
     BOOST_CHECK(pnode2->fFeeler == false);
 }

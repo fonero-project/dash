@@ -38,7 +38,7 @@ enum NumConnections {
     CONNECTIONS_ALL  = (CONNECTIONS_IN | CONNECTIONS_OUT),
 };
 
-/** Model for Dash network client. */
+/** Model for Fonero network client. */
 class ClientModel : public QObject
 {
     Q_OBJECT
@@ -82,6 +82,7 @@ public:
     QString formatFullVersion() const;
     QString formatSubVersion() const;
     bool isReleaseVersion() const;
+    QString clientName() const;
     QString formatClientStartupTime() const;
     QString dataDir() const;
 

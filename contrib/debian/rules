@@ -1,23 +1,24 @@
 #!/usr/bin/make -f
 # -*- mode: makefile; coding: utf-8 -*-
 
-#DEB_MAKE_CHECK_TARGET = test_dash
-#build/dashd::
-#	$(if $(filter nocheck,$(DEB_BUILD_OPTIONS)),,src/test_dash)
+#DEB_MAKE_CHECK_TARGET = test_fonero
+#build/fonerod::
+#	$(if $(filter nocheck,$(DEB_BUILD_OPTIONS)),,src/test_fonero)
+
+DEB_INSTALL_EXAMPLES_fonerod += debian/examples/*
+DEB_INSTALL_MANPAGES_fonerod += debian/manpages/*
 
 %:
 	dh --with bash-completion $@
 
 override_dh_auto_clean:
 	if [ -f Makefile ]; then $(MAKE) distclean; fi
-	rm -rf Makefile.in aclocal.m4 configure src/Makefile.in src/dash-config.h.in src/build-aux src/qt/Makefile.in src/qt/test/Makefile.in src/test/Makefile.in
-
-QT=$(shell dpkg-vendor --derives-from Ubuntu && echo qt4 || echo qt5)
+	rm -rf Makefile.in aclocal.m4 configure src/Makefile.in src/fonero-config.h.in src/build-aux src/qt/Makefile.in src/qt/test/Makefile.in src/test/Makefile.in
 
 # Yea, autogen should be run on the source archive, but I like doing git archive
 override_dh_auto_configure:
 	./autogen.sh
-	./configure --with-gui=$(QT)
+	./configure --without-miniupnpc --with-gui=qt4
 
 override_dh_auto_test:
 	make check

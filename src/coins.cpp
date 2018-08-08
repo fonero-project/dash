@@ -9,7 +9,6 @@
 #include "random.h"
 
 #include <assert.h>
-#include <boost/foreach.hpp>
 
 bool CCoinsView::GetCoin(const COutPoint &outpoint, Coin &coin) const { return false; }
 uint256 CCoinsView::GetBestBlock() const { return uint256(); }
@@ -254,7 +253,7 @@ double CCoinsViewCache::GetPriority(const CTransaction &tx, int nHeight, CAmount
         const Coin& coin = AccessCoin(txin.prevout);
         if (coin.IsSpent()) continue;
         if (coin.nHeight <= nHeight) {
-            dResult += (double)coin.out.nValue * (nHeight-coin.nHeight);
+            dResult += coin.out.nValue * (nHeight-coin.nHeight);
             inChainInputValue += coin.out.nValue;
         }
     }

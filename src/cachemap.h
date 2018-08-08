@@ -31,7 +31,7 @@ struct CacheItem
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
     {
         READWRITE(key);
         READWRITE(value);
@@ -65,6 +65,8 @@ public:
 private:
     size_type nMaxSize;
 
+    size_type nCurrentSize;
+
     list_t listItems;
 
     map_t mapIndex;
@@ -72,12 +74,14 @@ private:
 public:
     CacheMap(size_type nMaxSizeIn = 0)
         : nMaxSize(nMaxSizeIn),
+          nCurrentSize(0),
           listItems(),
           mapIndex()
     {}
 
     CacheMap(const CacheMap<K,V>& other)
         : nMaxSize(other.nMaxSize),
+          nCurrentSize(other.nCurrentSize),
           listItems(other.listItems),
           mapIndex()
     {
@@ -88,6 +92,7 @@ public:
     {
         mapIndex.clear();
         listItems.clear();
+        nCurrentSize = 0;
     }
 
     void SetMaxSize(size_type nMaxSizeIn)
@@ -100,25 +105,29 @@ public:
     }
 
     size_type GetSize() const {
-        return listItems.size();
+        return nCurrentSize;
     }
 
-    bool Insert(const K& key, const V& value)
+    void Insert(const K& key, const V& value)
     {
-        if(mapIndex.find(key) != mapIndex.end()) {
-            return false;
+        map_it it = mapIndex.find(key);
+        if(it != mapIndex.end()) {
+            item_t& item = *(it->second);
+            item.value = value;
+            return;
         }
-        if(listItems.size() == nMaxSize) {
+        if(nCurrentSize == nMaxSize) {
             PruneLast();
         }
         listItems.push_front(item_t(key, value));
-        mapIndex.emplace(key, listItems.begin());
-        return true;
+        mapIndex[key] = listItems.begin();
+        ++nCurrentSize;
     }
 
     bool HasKey(const K& key) const
     {
-        return (mapIndex.find(key) != mapIndex.end());
+        map_cit it = mapIndex.find(key);
+        return (it != mapIndex.end());
     }
 
     bool Get(const K& key, V& value) const
@@ -140,6 +149,7 @@ public:
         }
         listItems.erase(it->second);
         mapIndex.erase(it);
+        --nCurrentSize;
     }
 
     const list_t& GetItemList() const {
@@ -149,6 +159,7 @@ public:
     CacheMap<K,V>& operator=(const CacheMap<K,V>& other)
     {
         nMaxSize = other.nMaxSize;
+        nCurrentSize = other.nCurrentSize;
         listItems = other.listItems;
         RebuildIndex();
         return *this;
@@ -157,9 +168,10 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
     {
         READWRITE(nMaxSize);
+        READWRITE(nCurrentSize);
         READWRITE(listItems);
         if(ser_action.ForRead()) {
             RebuildIndex();
@@ -169,19 +181,20 @@ public:
 private:
     void PruneLast()
     {
-        if(listItems.empty()) {
+        if(nCurrentSize < 1) {
             return;
         }
         item_t& item = listItems.back();
         mapIndex.erase(item.key);
         listItems.pop_back();
+        --nCurrentSize;
     }
 
     void RebuildIndex()
     {
         mapIndex.clear();
         for(list_it it = listItems.begin(); it != listItems.end(); ++it) {
-            mapIndex.emplace(it->key, it);
+            mapIndex[it->key] = it;
         }
     }
 };

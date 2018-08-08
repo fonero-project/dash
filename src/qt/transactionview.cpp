@@ -199,14 +199,14 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     connect(showDetailsAction, SIGNAL(triggered()), this, SLOT(showDetails()));
 }
 
-void TransactionView::setModel(WalletModel *_model)
+void TransactionView::setModel(WalletModel *model)
 {
     QSettings settings;
-    this->model = _model;
-    if(_model)
+    this->model = model;
+    if(model)
     {
         transactionProxyModel = new TransactionFilterProxy(this);
-        transactionProxyModel->setSourceModel(_model->getTransactionTableModel());
+        transactionProxyModel->setSourceModel(model->getTransactionTableModel());
         transactionProxyModel->setDynamicSortFilter(true);
         transactionProxyModel->setSortCaseSensitivity(Qt::CaseInsensitive);
         transactionProxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
@@ -219,7 +219,7 @@ void TransactionView::setModel(WalletModel *_model)
         transactionView->setSelectionBehavior(QAbstractItemView::SelectRows);
         transactionView->setSelectionMode(QAbstractItemView::ExtendedSelection);
         transactionView->setSortingEnabled(true);
-        transactionView->sortByColumn(TransactionTableModel::Date, Qt::DescendingOrder);
+        transactionView->sortByColumn(TransactionTableModel::Status, Qt::DescendingOrder);
         transactionView->verticalHeader()->hide();
 
         transactionView->setColumnWidth(TransactionTableModel::Status, STATUS_COLUMN_WIDTH);
@@ -233,10 +233,10 @@ void TransactionView::setModel(WalletModel *_model)
 
         columnResizingFixer = new GUIUtil::TableViewLastColumnResizingFixer(transactionView, AMOUNT_MINIMUM_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH, this);
 
-        if (_model->getOptionsModel())
+        if (model->getOptionsModel())
         {
             // Add third party transaction URLs to context menu
-            QStringList listUrls = _model->getOptionsModel()->getThirdPartyTxUrls().split("|", QString::SkipEmptyParts);
+            QStringList listUrls = model->getOptionsModel()->getThirdPartyTxUrls().split("|", QString::SkipEmptyParts);
             for (int i = 0; i < listUrls.size(); ++i)
             {
                 QString host = QUrl(listUrls[i].trimmed(), QUrl::StrictMode).host();
@@ -253,10 +253,10 @@ void TransactionView::setModel(WalletModel *_model)
         }
 
         // show/hide column Watch-only
-        updateWatchOnlyColumn(_model->haveWatchOnly());
+        updateWatchOnlyColumn(model->haveWatchOnly());
 
         // Watch-only signal
-        connect(_model, SIGNAL(notifyWatchonlyChanged(bool)), this, SLOT(updateWatchOnlyColumn(bool)));
+        connect(model, SIGNAL(notifyWatchonlyChanged(bool)), this, SLOT(updateWatchOnlyColumn(bool)));
         
         // Update transaction list with persisted settings
         chooseType(settings.value("transactionType").toInt());
@@ -519,9 +519,8 @@ void TransactionView::showDetails()
     QModelIndexList selection = transactionView->selectionModel()->selectedRows();
     if(!selection.isEmpty())
     {
-        TransactionDescDialog *dlg = new TransactionDescDialog(selection.at(0));
-        dlg->setAttribute(Qt::WA_DeleteOnClose);
-        dlg->show();
+        TransactionDescDialog dlg(selection.at(0));
+        dlg.exec();
     }
 }
 

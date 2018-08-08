@@ -6,8 +6,7 @@
 #ifndef BITCOIN_SUPPORT_ALLOCATORS_SECURE_H
 #define BITCOIN_SUPPORT_ALLOCATORS_SECURE_H
 
-#include "support/lockedpool.h"
-#include "support/cleanse.h"
+#include "support/pagelocker.h"
 
 #include <string>
 #include <vector>
@@ -41,15 +40,20 @@ struct secure_allocator : public std::allocator<T> {
 
     T* allocate(std::size_t n, const void* hint = 0)
     {
-        return static_cast<T*>(LockedPoolManager::Instance().alloc(sizeof(T) * n));
+        T* p;
+        p = std::allocator<T>::allocate(n, hint);
+        if (p != NULL)
+            LockedPageManager::Instance().LockRange(p, sizeof(T) * n);
+        return p;
     }
 
     void deallocate(T* p, std::size_t n)
     {
         if (p != NULL) {
             memory_cleanse(p, sizeof(T) * n);
+            LockedPageManager::Instance().UnlockRange(p, sizeof(T) * n);
         }
-        LockedPoolManager::Instance().free(p);
+        std::allocator<T>::deallocate(p, n);
     }
 };
 

@@ -46,6 +46,8 @@ public:
 private:
     size_type nMaxSize;
 
+    size_type nCurrentSize;
+
     list_t listItems;
 
     map_t mapIndex;
@@ -53,12 +55,14 @@ private:
 public:
     CacheMultiMap(size_type nMaxSizeIn = 0)
         : nMaxSize(nMaxSizeIn),
+          nCurrentSize(0),
           listItems(),
           mapIndex()
     {}
 
     CacheMultiMap(const CacheMap<K,V>& other)
         : nMaxSize(other.nMaxSize),
+          nCurrentSize(other.nCurrentSize),
           listItems(other.listItems),
           mapIndex()
     {
@@ -69,6 +73,7 @@ public:
     {
         mapIndex.clear();
         listItems.clear();
+        nCurrentSize = 0;
     }
 
     void SetMaxSize(size_type nMaxSizeIn)
@@ -81,14 +86,17 @@ public:
     }
 
     size_type GetSize() const {
-        return listItems.size();
+        return nCurrentSize;
     }
 
     bool Insert(const K& key, const V& value)
     {
+        if(nCurrentSize == nMaxSize) {
+            PruneLast();
+        }
         map_it mit = mapIndex.find(key);
         if(mit == mapIndex.end()) {
-            mit = mapIndex.emplace(key, it_map_t()).first;
+            mit = mapIndex.insert(std::pair<K,it_map_t>(key, it_map_t())).first;
         }
         it_map_t& mapIt = mit->second;
 
@@ -97,17 +105,18 @@ public:
             return false;
         }
 
-        if(listItems.size() == nMaxSize) {
-            PruneLast();
-        }
         listItems.push_front(item_t(key, value));
-        mapIt.emplace(value, listItems.begin());
+        list_it lit = listItems.begin();
+
+        mapIt[value] = lit;
+        ++nCurrentSize;
         return true;
     }
 
     bool HasKey(const K& key) const
     {
-        return (mapIndex.find(key) != mapIndex.end());
+        map_cit it = mapIndex.find(key);
+        return (it != mapIndex.end());
     }
 
     bool Get(const K& key, V& value) const
@@ -154,6 +163,7 @@ public:
 
         for(it_map_it it = mapIt.begin(); it != mapIt.end(); ++it) {
             listItems.erase(it->second);
+            --nCurrentSize;
         }
 
         mapIndex.erase(mit);
@@ -173,9 +183,10 @@ public:
         }
 
         listItems.erase(it->second);
+        --nCurrentSize;
         mapIt.erase(it);
 
-        if(mapIt.empty()) {
+        if(mapIt.size() < 1) {
             mapIndex.erase(mit);
         }
     }
@@ -187,6 +198,7 @@ public:
     CacheMap<K,V>& operator=(const CacheMap<K,V>& other)
     {
         nMaxSize = other.nMaxSize;
+        nCurrentSize = other.nCurrentSize;
         listItems = other.listItems;
         RebuildIndex();
         return *this;
@@ -195,9 +207,10 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
     {
         READWRITE(nMaxSize);
+        READWRITE(nCurrentSize);
         READWRITE(listItems);
         if(ser_action.ForRead()) {
             RebuildIndex();
@@ -207,7 +220,7 @@ public:
 private:
     void PruneLast()
     {
-        if(listItems.empty()) {
+        if(nCurrentSize < 1) {
             return;
         }
 
@@ -222,12 +235,13 @@ private:
 
             mapIt.erase(item.value);
 
-            if(mapIt.empty()) {
+            if(mapIt.size() < 1) {
                 mapIndex.erase(item.key);
             }
         }
 
         listItems.pop_back();
+        --nCurrentSize;
     }
 
     void RebuildIndex()
@@ -237,10 +251,10 @@ private:
             item_t& item = *lit;
             map_it mit = mapIndex.find(item.key);
             if(mit == mapIndex.end()) {
-                mit = mapIndex.emplace(item.key, it_map_t()).first;
+                mit = mapIndex.insert(std::pair<K,it_map_t>(item.key, it_map_t())).first;
             }
             it_map_t& mapIt = mit->second;
-            mapIt.emplace(item.value, lit);
+            mapIt[item.value] = lit;
         }
     }
 };

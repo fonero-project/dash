@@ -6,13 +6,13 @@ reset-files.bash
 *.tar.gz
 
 *.exe
-src/dash
-src/dashd
-src/dash-cli
-src/dash-tx
-src/test/test_dash
-src/qt/test/test_dash-qt
-src/bench/bench_dash
+src/fonero
+src/fonerod
+src/fonero-cli
+src/fonero-tx
+src/test/test_fonero
+src/qt/test/test_fonero-qt
+src/bench/bench_fonero
 
 # autoreconf
 Makefile.in
@@ -35,8 +35,8 @@ config.log
 config.status
 configure
 libtool
-src/config/dash-config.h
-src/config/dash-config.h.in
+src/config/fonero-config.h
+src/config/fonero-config.h.in
 src/config/stamp-h1
 share/setup.nsi
 share/qt/Info.plist
@@ -62,6 +62,7 @@ libconftest.dylib*
 *.o
 *.o-*
 *.patch
+.fonero
 *.a
 *.pb.cc
 *.pb.h
@@ -80,12 +81,12 @@ libconftest.dylib*
 # Compilation and Qt preprocessor part
 *.qm
 Makefile
-dash-qt
-Dash-Qt.app
+fonero-qt
+Fonero-Qt.app
 
 # Unit-tests
 Makefile.test
-dash-qt_test
+fonero-qt_test
 src/test/buildenv.py
 
 # Resources cpp
@@ -99,7 +100,7 @@ build
 *.gcno
 *.gcda
 /*.info
-test_dash.coverage/
+test_fonero.coverage/
 total.coverage/
 coverage_percent.txt
 
@@ -107,8 +108,13 @@ coverage_percent.txt
 linux-coverage-build
 linux-build
 win32-build
+qa/pull-tester/run-bitcoind-for-test.sh
 qa/pull-tester/tests_config.py
-qa/cache/*
+qa/pull-tester/cache/*
+qa/pull-tester/test.*/*
+qa/tmp
+cache/
+share/BitcoindComparisonTool.jar
 
 !src/leveldb*/Makefile
 
@@ -117,19 +123,12 @@ qa/cache/*
 .autotools
 /doc/doxygen/
 
-libdashconsensus.pc
-contrib/devtools/split-debug.sh
-src/qt/dash-qt.bash
+libfoneroconsensus.pc
+src/qt/fonero-qt.bash
 qa/pull-tester/tests-config.sh
 
 #development symlinks
-dash-cli
-dashd
-dash-qt
+fonero-cli
+fonerod
+fonero-qt
 make
-
-/docker/bin
-
-# CLion
-.idea
-cmake-build-debug

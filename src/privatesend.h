@@ -25,7 +25,7 @@ static const int PRIVATESEND_SIGNING_TIMEOUT        = 15;
 //! minimum peer version accepted by mixing pool
 static const int MIN_PRIVATESEND_PEER_PROTO_VERSION = 70208;
 
-static const size_t PRIVATESEND_ENTRY_MAX_SIZE      = 9;
+static const CAmount PRIVATESEND_ENTRY_MAX_SIZE     = 9;
 
 // pool responses
 enum PoolMessage {
@@ -51,7 +51,6 @@ enum PoolMessage {
     MSG_NOERR,
     MSG_SUCCESS,
     MSG_ENTRIES_ADDED,
-    ERR_INVALID_INPUT_COUNT,
     MSG_POOL_MIN = ERR_ALREADY_HAVE,
     MSG_POOL_MAX = MSG_ENTRIES_ADDED
 };
@@ -82,57 +81,21 @@ public:
     // memory only
     CScript prevPubKey;
     bool fHasSig; // flag to indicate if signed
+    int nSentTimes; //times we've sent this anonymously
 
     CTxDSIn(const CTxIn& txin, const CScript& script) :
         CTxIn(txin),
         prevPubKey(script),
-        fHasSig(false)
+        fHasSig(false),
+        nSentTimes(0)
         {}
 
     CTxDSIn() :
         CTxIn(),
         prevPubKey(),
-        fHasSig(false)
+        fHasSig(false),
+        nSentTimes(0)
         {}
-};
-
-class CDarksendAccept
-{
-public:
-    int nDenom;
-    int nInputCount;
-    CMutableTransaction txCollateral;
-
-    CDarksendAccept() :
-        nDenom(0),
-        nInputCount(0),
-        txCollateral(CMutableTransaction())
-        {};
-
-    CDarksendAccept(int nDenom, int nInputCount, const CMutableTransaction& txCollateral) :
-        nDenom(nDenom),
-        nInputCount(nInputCount),
-        txCollateral(txCollateral)
-        {};
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
-        READWRITE(nDenom);
-        int nVersion = s.GetVersion();
-        if (nVersion > 70208) {
-            READWRITE(nInputCount);
-        } else if (ser_action.ForRead()) {
-            nInputCount = 0;
-        }
-        READWRITE(txCollateral);
-    }
-
-    friend bool operator==(const CDarksendAccept& a, const CDarksendAccept& b)
-    {
-        return a.nDenom == b.nDenom && a.txCollateral == b.txCollateral;
-    }
 };
 
 // A clients transaction in the mixing pool
@@ -141,28 +104,28 @@ class CDarkSendEntry
 public:
     std::vector<CTxDSIn> vecTxDSIn;
     std::vector<CTxOut> vecTxOut;
-    CTransactionRef txCollateral;
+    CTransaction txCollateral;
     // memory only
     CService addr;
 
     CDarkSendEntry() :
         vecTxDSIn(std::vector<CTxDSIn>()),
         vecTxOut(std::vector<CTxOut>()),
-        txCollateral(MakeTransactionRef()),
+        txCollateral(CTransaction()),
         addr(CService())
         {}
 
     CDarkSendEntry(const std::vector<CTxDSIn>& vecTxDSIn, const std::vector<CTxOut>& vecTxOut, const CTransaction& txCollateral) :
         vecTxDSIn(vecTxDSIn),
         vecTxOut(vecTxOut),
-        txCollateral(MakeTransactionRef(txCollateral)),
+        txCollateral(txCollateral),
         addr(CService())
         {}
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
         READWRITE(vecTxDSIn);
         READWRITE(txCollateral);
         READWRITE(vecTxOut);
@@ -173,14 +136,13 @@ public:
 
 
 /**
- * A currently in progress mixing merge and denomination information
+ * A currently inprogress mixing merge and denomination information
  */
 class CDarksendQueue
 {
 public:
     int nDenom;
-    int nInputCount;
-    COutPoint masternodeOutpoint;
+    CTxIn vin;
     int64_t nTime;
     bool fReady; //ready for submit
     std::vector<unsigned char> vchSig;
@@ -189,18 +151,16 @@ public:
 
     CDarksendQueue() :
         nDenom(0),
-        nInputCount(0),
-        masternodeOutpoint(COutPoint()),
+        vin(CTxIn()),
         nTime(0),
         fReady(false),
         vchSig(std::vector<unsigned char>()),
         fTried(false)
         {}
 
-    CDarksendQueue(int nDenom, int nInputCount, COutPoint outpoint, int64_t nTime, bool fReady) :
+    CDarksendQueue(int nDenom, COutPoint outpoint, int64_t nTime, bool fReady) :
         nDenom(nDenom),
-        nInputCount(nInputCount),
-        masternodeOutpoint(outpoint),
+        vin(CTxIn(outpoint)),
         nTime(nTime),
         fReady(fReady),
         vchSig(std::vector<unsigned char>()),
@@ -210,36 +170,14 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
         READWRITE(nDenom);
-        int nVersion = s.GetVersion();
-        if (nVersion > 70208) {
-            READWRITE(nInputCount);
-        } else if (ser_action.ForRead()) {
-            nInputCount = 0;
-        }
-        if (nVersion == 70208 && (s.GetType() & SER_NETWORK)) {
-            // converting from/to old format
-            CTxIn txin{};
-            if (ser_action.ForRead()) {
-                READWRITE(txin);
-                masternodeOutpoint = txin.prevout;
-            } else {
-                txin = CTxIn(masternodeOutpoint);
-                READWRITE(txin);
-            }
-        } else {
-            // using new format directly
-            READWRITE(masternodeOutpoint);
-        }
+        READWRITE(vin);
         READWRITE(nTime);
         READWRITE(fReady);
-        if (!(s.GetType() & SER_GETHASH)) {
-            READWRITE(vchSig);
-        }
+        READWRITE(vchSig);
     }
 
-    uint256 GetSignatureHash() const;
     /** Sign this mixing transaction
      *  \return true if all conditions are met:
      *     1) we have an active Masternode,
@@ -249,22 +187,22 @@ public:
      */
     bool Sign();
     /// Check if we have a valid Masternode address
-    bool CheckSignature(const CPubKey& pubKeyMasternode) const;
+    bool CheckSignature(const CPubKey& pubKeyMasternode);
 
     bool Relay(CConnman &connman);
 
     /// Is this queue expired?
     bool IsExpired() { return GetAdjustedTime() - nTime > PRIVATESEND_QUEUE_TIMEOUT; }
 
-    std::string ToString() const
+    std::string ToString()
     {
-        return strprintf("nDenom=%d, nInputCount=%d, nTime=%lld, fReady=%s, fTried=%s, masternode=%s",
-                        nDenom, nInputCount, nTime, fReady ? "true" : "false", fTried ? "true" : "false", masternodeOutpoint.ToStringShort());
+        return strprintf("nDenom=%d, nTime=%lld, fReady=%s, fTried=%s, masternode=%s",
+                        nDenom, nTime, fReady ? "true" : "false", fTried ? "true" : "false", vin.prevout.ToStringShort());
     }
 
     friend bool operator==(const CDarksendQueue& a, const CDarksendQueue& b)
     {
-        return a.nDenom == b.nDenom && a.nInputCount == b.nInputCount && a.masternodeOutpoint == b.masternodeOutpoint && a.nTime == b.nTime && a.fReady == b.fReady;
+        return a.nDenom == b.nDenom && a.vin.prevout == b.vin.prevout && a.nTime == b.nTime && a.fReady == b.fReady;
     }
 };
 
@@ -278,56 +216,40 @@ private:
     int nConfirmedHeight;
 
 public:
-    CTransactionRef tx;
-    COutPoint masternodeOutpoint;
+    CTransaction tx;
+    CTxIn vin;
     std::vector<unsigned char> vchSig;
     int64_t sigTime;
 
     CDarksendBroadcastTx() :
         nConfirmedHeight(-1),
-        tx(MakeTransactionRef()),
-        masternodeOutpoint(),
+        tx(),
+        vin(),
         vchSig(),
         sigTime(0)
         {}
 
-    CDarksendBroadcastTx(const CTransactionRef& _tx, COutPoint _outpoint, int64_t _sigTime) :
+    CDarksendBroadcastTx(CTransaction tx, COutPoint outpoint, int64_t sigTime) :
         nConfirmedHeight(-1),
-        tx(_tx),
-        masternodeOutpoint(_outpoint),
+        tx(tx),
+        vin(CTxIn(outpoint)),
         vchSig(),
-        sigTime(_sigTime)
+        sigTime(sigTime)
         {}
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
         READWRITE(tx);
-        int nVersion = s.GetVersion();
-        if (nVersion == 70208 && (s.GetType() & SER_NETWORK)) {
-            // converting from/to old format
-            CTxIn txin{};
-            if (ser_action.ForRead()) {
-                READWRITE(txin);
-                masternodeOutpoint = txin.prevout;
-            } else {
-                txin = CTxIn(masternodeOutpoint);
-                READWRITE(txin);
-            }
-        } else {
-            // using new format directly
-            READWRITE(masternodeOutpoint);
-        }
-        if (!(s.GetType() & SER_GETHASH)) {
-            READWRITE(vchSig);
-        }
+        READWRITE(vin);
+        READWRITE(vchSig);
         READWRITE(sigTime);
     }
 
     friend bool operator==(const CDarksendBroadcastTx& a, const CDarksendBroadcastTx& b)
     {
-        return *a.tx == *b.tx;
+        return a.tx == b.tx;
     }
     friend bool operator!=(const CDarksendBroadcastTx& a, const CDarksendBroadcastTx& b)
     {
@@ -338,10 +260,8 @@ public:
         return *this != CDarksendBroadcastTx();
     }
 
-    uint256 GetSignatureHash() const;
-
     bool Sign();
-    bool CheckSignature(const CPubKey& pubKeyMasternode) const;
+    bool CheckSignature(const CPubKey& pubKeyMasternode);
 
     void SetConfirmedHeight(int nConfirmedHeightIn) { nConfirmedHeight = nConfirmedHeightIn; }
     bool IsExpired(int nHeight);
@@ -359,7 +279,7 @@ protected:
     std::vector<CDarkSendEntry> vecEntries; // Masternode/clients entries
 
     PoolState nState; // should be one of the POOL_STATE_XXX values
-    int64_t nTimeLastSuccessfulStep; // the time when last successful mixing step was performed
+    int64_t nTimeLastSuccessfulStep; // the time when last successful mixing step was performed, in UTC milliseconds
 
     int nSessionID; // 0 if no mixing session is active
 
@@ -370,7 +290,6 @@ protected:
 
 public:
     int nSessionDenom; //Users must submit an denom matching this
-    int nSessionInputCount; //Users must submit a count matching this
 
     CPrivateSendBase() { SetNull(); }
 
@@ -406,7 +325,7 @@ public:
     static std::vector<CAmount> GetStandardDenominations() { return vecStandardDenominations; }
     static CAmount GetSmallestDenomination() { return vecStandardDenominations.back(); }
 
-    /// Get the denominations for a specific amount of dash.
+    /// Get the denominations for a specific amount of fonero.
     static int GetDenominationsByAmounts(const std::vector<CAmount>& vecAmount);
 
     static bool IsDenominatedAmount(CAmount nInputAmount);
@@ -434,7 +353,7 @@ public:
     static CDarksendBroadcastTx GetDSTX(const uint256& hash);
 
     static void UpdatedBlockTip(const CBlockIndex *pindex);
-    static void SyncTransaction(const CTransaction& tx, const CBlockIndex *pindex, int posInBlock);
+    static void SyncTransaction(const CTransaction& tx, const CBlock* pblock);
 };
 
 void ThreadCheckPrivateSend(CConnman& connman);

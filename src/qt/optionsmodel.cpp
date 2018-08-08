@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/dash-config.h"
+#include "config/fonero-config.h"
 #endif
 
 #include "optionsmodel.h"
@@ -39,7 +39,7 @@ OptionsModel::OptionsModel(QObject *parent, bool resetSettings) :
 
 void OptionsModel::addOverriddenOption(const std::string &option)
 {
-    strOverriddenByCommandLine += QString::fromStdString(option) + "=" + QString::fromStdString(GetArg(option, "")) + " ";
+    strOverriddenByCommandLine += QString::fromStdString(option) + "=" + QString::fromStdString(mapArgs[option]) + " ";
 }
 
 // Writes all missing QSettings with their default values
@@ -47,8 +47,6 @@ void OptionsModel::Init(bool resetSettings)
 {
     if (resetSettings)
         Reset();
-
-    checkAndMigrate();
 
     this->resetSettings = resetSettings;
 
@@ -75,7 +73,7 @@ void OptionsModel::Init(bool resetSettings)
 
     // Display
     if (!settings.contains("nDisplayUnit"))
-        settings.setValue("nDisplayUnit", BitcoinUnits::DASH);
+        settings.setValue("nDisplayUnit", BitcoinUnits::FNO);
     nDisplayUnit = settings.value("nDisplayUnit").toInt();
 
     if (!settings.contains("strThirdPartyTxUrls"))
@@ -96,7 +94,6 @@ void OptionsModel::Init(bool resetSettings)
     if (!settings.contains("fShowMasternodesTab"))
         settings.setValue("fShowMasternodesTab", masternodeConfig.getCount());
 
-    // PrivateSend
     if (!settings.contains("fShowAdvancedPSUI"))
         settings.setValue("fShowAdvancedPSUI", false);
     fShowAdvancedPSUI = settings.value("fShowAdvancedPSUI", false).toBool();
@@ -140,10 +137,10 @@ void OptionsModel::Init(bool resetSettings)
 
     if (!settings.contains("nPrivateSendAmount")) {
         // for migration from old settings
-        if (!settings.contains("nAnonymizeDashAmount"))
+        if (!settings.contains("nAnonymizeFoneroAmount"))
             settings.setValue("nPrivateSendAmount", DEFAULT_PRIVATESEND_AMOUNT);
         else
-            settings.setValue("nPrivateSendAmount", settings.value("nAnonymizeDashAmount").toInt());
+            settings.setValue("nPrivateSendAmount", settings.value("nAnonymizeFoneroAmount").toInt());
     }
     if (!SoftSetArg("-privatesendamount", settings.value("nPrivateSendAmount").toString().toStdString()))
         addOverriddenOption("-privatesendamount");
@@ -202,7 +199,7 @@ void OptionsModel::Reset()
 
     // Remove all entries from our QSettings object
     settings.clear();
-    resetSettings = true; // Needed in dash.cpp during shotdown to also remove the window positions
+    resetSettings = true; // Needed in fonero.cpp during shotdown to also remove the window positions
 
     // default setting for OptionsModel::StartAtStartup - disabled
     if (GUIUtil::GetStartOnSystemStartup())
@@ -554,23 +551,4 @@ bool OptionsModel::isRestartRequired()
 {
     QSettings settings;
     return settings.value("fRestartRequired", false).toBool();
-}
-
-void OptionsModel::checkAndMigrate()
-{
-    // Migration of default values
-    // Check if the QSettings container was already loaded with this client version
-    QSettings settings;
-    static const char strSettingsVersionKey[] = "nSettingsVersion";
-    int settingsVersion = settings.contains(strSettingsVersionKey) ? settings.value(strSettingsVersionKey).toInt() : 0;
-    if (settingsVersion < CLIENT_VERSION)
-    {
-        // -dbcache was bumped from 100 to 300 in 0.13
-        // see https://github.com/bitcoin/bitcoin/pull/8273
-        // force people to upgrade to the new value if they are using 100MB
-        if (settingsVersion < 130000 && settings.contains("nDatabaseCache") && settings.value("nDatabaseCache").toLongLong() == 100)
-            settings.setValue("nDatabaseCache", (qint64)nDefaultDbCache);
-
-        settings.setValue(strSettingsVersionKey, CLIENT_VERSION);
-    }
 }

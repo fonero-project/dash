@@ -64,9 +64,9 @@ protected:
     CHDChain hdChain;
 
 public:
-    bool AddKeyPubKey(const CKey& key, const CPubKey &pubkey) override;
-    bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const override;
-    bool HaveKey(const CKeyID &address) const override
+    bool AddKeyPubKey(const CKey& key, const CPubKey &pubkey);
+    bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const;
+    bool HaveKey(const CKeyID &address) const
     {
         bool result;
         {
@@ -75,7 +75,7 @@ public:
         }
         return result;
     }
-    void GetKeys(std::set<CKeyID> &setAddress) const override
+    void GetKeys(std::set<CKeyID> &setAddress) const
     {
         setAddress.clear();
         {
@@ -88,7 +88,7 @@ public:
             }
         }
     }
-    bool GetKey(const CKeyID &address, CKey &keyOut) const override
+    bool GetKey(const CKeyID &address, CKey &keyOut) const
     {
         {
             LOCK(cs_KeyStore);
@@ -101,16 +101,16 @@ public:
         }
         return false;
     }
-    virtual bool AddCScript(const CScript& redeemScript) override;
-    virtual bool HaveCScript(const CScriptID &hash) const override;
-    virtual bool GetCScript(const CScriptID &hash, CScript& redeemScriptOut) const override;
+    virtual bool AddCScript(const CScript& redeemScript);
+    virtual bool HaveCScript(const CScriptID &hash) const;
+    virtual bool GetCScript(const CScriptID &hash, CScript& redeemScriptOut) const;
 
-    virtual bool AddWatchOnly(const CScript &dest) override;
-    virtual bool RemoveWatchOnly(const CScript &dest) override;
-    virtual bool HaveWatchOnly(const CScript &dest) const override;
-    virtual bool HaveWatchOnly() const override;
+    virtual bool AddWatchOnly(const CScript &dest);
+    virtual bool RemoveWatchOnly(const CScript &dest);
+    virtual bool HaveWatchOnly(const CScript &dest) const;
+    virtual bool HaveWatchOnly() const;
 
-    virtual bool GetHDChain(CHDChain& hdChainRet) const;
+    bool GetHDChain(CHDChain& hdChainRet) const;
 };
 
 typedef std::vector<unsigned char, secure_allocator<unsigned char> > CKeyingMaterial;

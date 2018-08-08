@@ -4,12 +4,12 @@
 
 #include <vector>
 #include "prevector.h"
+#include "random.h"
 
 #include "serialize.h"
 #include "streams.h"
 
-#include "test/test_dash.h"
-#include "test/test_random.h"
+#include "test/test_fonero.h"
 
 #include <boost/test/unit_test.hpp>
 
@@ -27,7 +27,8 @@ class prevector_tester {
 
     typedef typename pretype::size_type Size;
     bool passed = true;
-    FastRandomContext rand_cache;
+    uint32_t insecure_rand_Rz_cache;
+    uint32_t insecure_rand_Rw_cache;
 
 
     template <typename A, typename B>
@@ -169,34 +170,23 @@ public:
         pre_vector.swap(pre_vector_alt);
         test();
     }
-
-    void move() {
-        real_vector = std::move(real_vector_alt);
-        real_vector_alt.clear();
-        pre_vector = std::move(pre_vector_alt);
-        pre_vector_alt.clear();
-    }
-
-    void copy() {
-        real_vector = real_vector_alt;
-        pre_vector = pre_vector_alt;
-    }
-
     ~prevector_tester() {
-        BOOST_CHECK_MESSAGE(passed, "insecure_rand_Rz: "
-                << rand_cache.Rz
+        BOOST_CHECK_MESSAGE(passed, "insecure_rand_Rz: " 
+                << insecure_rand_Rz_cache 
                 << ", insecure_rand_Rw: "
-                << rand_cache.Rw);
+                << insecure_rand_Rw_cache);
     }
     prevector_tester() {
         seed_insecure_rand();
-        rand_cache = insecure_rand_ctx;
+        insecure_rand_Rz_cache = insecure_rand_Rz;
+        insecure_rand_Rw_cache = insecure_rand_Rw;
     }
 };
 
 BOOST_AUTO_TEST_CASE(PrevectorTestInt)
 {
     for (int j = 0; j < 64; j++) {
+        BOOST_TEST_MESSAGE("PrevectorTestInt " << j);
         prevector_tester<8, int> test;
         for (int i = 0; i < 2048; i++) {
             int r = insecure_rand();
@@ -227,8 +217,8 @@ BOOST_AUTO_TEST_CASE(PrevectorTestInt)
             if (((r >> 21) % 32) == 7) {
                 int values[4];
                 int num = 1 + (insecure_rand() % 4);
-                for (int k = 0; k < num; k++) {
-                    values[k] = insecure_rand();
+                for (int i = 0; i < num; i++) {
+                    values[i] = insecure_rand();
                 }
                 test.insert_range(insecure_rand() % (test.size() + 1), values, values + num);
             }
@@ -253,14 +243,8 @@ BOOST_AUTO_TEST_CASE(PrevectorTestInt)
             if (((r >> 21) % 512) == 12) {
                 test.assign(insecure_rand() % 32, insecure_rand());
             }
-            if (((r >> 15) % 8) == 3) {
+            if (((r >> 15) % 64) == 3) {
                 test.swap();
-            }
-            if (((r >> 15) % 16) == 8) {
-                test.copy();
-            }
-            if (((r >> 15) % 32) == 18) {
-                test.move();
             }
         }
     }

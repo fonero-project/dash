@@ -10,7 +10,6 @@
 
 #include "governance-vote.h"
 #include "serialize.h"
-#include "streams.h"
 #include "uint256.h"
 
 /**
@@ -63,7 +62,7 @@ public:
     /**
      * Retrieve a vote cached in memory
      */
-    bool SerializeVoteToStream(const uint256& nHash, CDataStream& ss) const;
+    bool GetVote(const uint256& nHash, CGovernanceVote& vote) const;
 
     int GetVoteCount() {
         return nMemoryVotes;
@@ -71,12 +70,14 @@ public:
 
     std::vector<CGovernanceVote> GetVotes() const;
 
+    CGovernanceObjectVoteFile& operator=(const CGovernanceObjectVoteFile& other);
+
     void RemoveVotesFromMasternode(const COutPoint& outpointMasternode);
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
     {
         READWRITE(nMemoryVotes);
         READWRITE(listVotes);

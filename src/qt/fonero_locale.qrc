@@ -1,0 +1,20 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/translations">
+        <file alias="bg">locale/fonero_bg.qm</file>
+        <file alias="de">locale/fonero_de.qm</file>
+        <file alias="en">locale/fonero_en.qm</file>
+        <file alias="es">locale/fonero_es.qm</file>
+        <file alias="fi">locale/fonero_fi.qm</file>
+        <file alias="fr">locale/fonero_fr.qm</file>
+        <file alias="it">locale/fonero_it.qm</file>
+        <file alias="ja">locale/fonero_ja.qm</file>
+        <file alias="pl">locale/fonero_pl.qm</file>
+        <file alias="pt">locale/fonero_pt.qm</file>
+        <file alias="ru">locale/fonero_ru.qm</file>
+        <file alias="sk">locale/fonero_sk.qm</file>
+        <file alias="sv">locale/fonero_sv.qm</file>
+        <file alias="vi">locale/fonero_vi.qm</file>
+        <file alias="zh_CN">locale/fonero_zh_CN.qm</file>
+        <file alias="zh_TW">locale/fonero_zh_TW.qm</file>
+    </qresource>
+</RCC>

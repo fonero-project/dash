@@ -5,7 +5,7 @@
 #ifndef GOVERNANCE_OBJECT_H
 #define GOVERNANCE_OBJECT_H
 
-//#define ENABLE_DASH_DEBUG
+//#define ENABLE_FNO_DEBUG
 
 #include "cachemultimap.h"
 #include "governance-exceptions.h"
@@ -15,7 +15,6 @@
 #include "net.h"
 #include "sync.h"
 #include "util.h"
-#include "utilstrencodings.h"
 
 #include <univalue.h>
 
@@ -25,7 +24,7 @@ class CGovernanceObject;
 class CGovernanceVote;
 
 static const int MAX_GOVERNANCE_OBJECT_DATA_SIZE = 16 * 1024;
-static const int MIN_GOVERNANCE_PEER_PROTO_VERSION = 70208;
+static const int MIN_GOVERNANCE_PEER_PROTO_VERSION = 70206;
 static const int GOVERNANCE_FILTER_PROTO_VERSION = 70206;
 
 static const double GOVERNANCE_FILTER_FP_RATE = 0.001;
@@ -42,6 +41,9 @@ static const int64_t GOVERNANCE_MIN_RELAY_FEE_CONFIRMATIONS = 1;
 static const int64_t GOVERNANCE_UPDATE_MIN = 60*60;
 static const int64_t GOVERNANCE_DELETION_DELAY = 10*60;
 static const int64_t GOVERNANCE_ORPHAN_EXPIRATION_TIME = 10*60;
+static const int64_t GOVERNANCE_WATCHDOG_EXPIRATION_TIME = 2*60*60;
+
+static const int GOVERNANCE_TRIGGER_EXPIRATION_BLOCKS = 576;
 
 // FOR SEEN MAP ARRAYS - GOVERNANCE OBJECTS AND VOTES
 static const int SEEN_OBJECT_IS_VALID = 0;
@@ -72,7 +74,7 @@ struct vote_instance_t {
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
     {
         int nOutcome = int(eOutcome);
         READWRITE(nOutcome);
@@ -96,7 +98,7 @@ struct vote_rec_t {
     ADD_SERIALIZE_METHODS;
 
      template <typename Stream, typename Operation>
-     inline void SerializationOp(Stream& s, Operation ser_action)
+     inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
      {
          READWRITE(mapInstances);
      }
@@ -110,8 +112,8 @@ struct vote_rec_t {
 class CGovernanceObject
 {
     friend class CGovernanceManager;
+
     friend class CGovernanceTriggerManager;
-    friend class CSuperblock;
 
 public: // Types
     typedef std::map<COutPoint, vote_rec_t> vote_m_t;
@@ -120,10 +122,10 @@ public: // Types
 
     typedef vote_m_t::const_iterator vote_m_cit;
 
-    typedef CacheMultiMap<COutPoint, vote_time_pair_t> vote_cmm_t;
+    typedef CacheMultiMap<COutPoint, vote_time_pair_t> vote_mcache_t;
 
 private:
-    /// critical section to protect the inner data structures
+    /// critical section to fonero the inner data structures
     mutable CCriticalSection cs;
 
     /// Object typecode
@@ -145,10 +147,10 @@ private:
     uint256 nCollateralHash;
 
     /// Data field - can be used for anything
-    std::vector<unsigned char> vchData;
+    std::string strData;
 
     /// Masternode info for signed objects
-    COutPoint masternodeOutpoint;
+    CTxIn vinMasternode;
     std::vector<unsigned char> vchSig;
 
     /// is valid by blockchain
@@ -183,14 +185,14 @@ private:
     vote_m_t mapCurrentMNVotes;
 
     /// Limited map of votes orphaned by MN
-    vote_cmm_t cmmapOrphanVotes;
+    vote_mcache_t mapOrphanVotes;
 
     CGovernanceObjectVoteFile fileVotes;
 
 public:
     CGovernanceObject();
 
-    CGovernanceObject(const uint256& nHashParentIn, int nRevisionIn, int64_t nTime, const uint256& nCollateralHashIn, const std::string& strDataHexIn);
+    CGovernanceObject(uint256 nHashParentIn, int nRevisionIn, int64_t nTime, uint256 nCollateralHashIn, std::string strDataIn);
 
     CGovernanceObject(const CGovernanceObject& other);
 
@@ -214,8 +216,8 @@ public:
         return nCollateralHash;
     }
 
-    const COutPoint& GetMasternodeOutpoint() const {
-        return masternodeOutpoint;
+    const CTxIn& GetMasternodeVin() const {
+        return vinMasternode;
     }
 
     bool IsSetCachedFunding() const {
@@ -246,33 +248,34 @@ public:
         fDirtyCache = true;
     }
 
-    const CGovernanceObjectVoteFile& GetVoteFile() const {
+    CGovernanceObjectVoteFile& GetVoteFile() {
         return fileVotes;
     }
 
     // Signature related functions
 
-    void SetMasternodeOutpoint(const COutPoint& outpoint);
-    bool Sign(const CKey& keyMasternode, const CPubKey& pubKeyMasternode);
-    bool CheckSignature(const CPubKey& pubKeyMasternode) const;
+    void SetMasternodeVin(const COutPoint& outpoint);
+    bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode);
+    bool CheckSignature(CPubKey& pubKeyMasternode);
 
     std::string GetSignatureMessage() const;
-    uint256 GetSignatureHash() const;
 
     // CORE OBJECT FUNCTIONS
 
-    bool IsValidLocally(std::string& strError, bool fCheckCollateral) const;
+    bool IsValidLocally(std::string& strError, bool fCheckCollateral);
 
-    bool IsValidLocally(std::string& strError, bool& fMissingMasternode, bool& fMissingConfirmations, bool fCheckCollateral) const;
+    bool IsValidLocally(std::string& strError, bool& fMissingMasternode, bool& fMissingConfirmations, bool fCheckCollateral);
 
     /// Check the collateral transaction for the budget proposal/finalized budget
-    bool IsCollateralValid(std::string& strError, bool& fMissingConfirmations) const;
+    bool IsCollateralValid(std::string& strError, bool &fMissingConfirmations);
 
     void UpdateLocalValidity();
 
     void UpdateSentinelVariables();
 
-    CAmount GetMinCollateralFee() const;
+    int GetObjectSubtype();
+
+    CAmount GetMinCollateralFee();
 
     UniValue GetJSONObject();
 
@@ -290,59 +293,31 @@ public:
     int GetNoCount(vote_signal_enum_t eVoteSignalIn) const;
     int GetAbstainCount(vote_signal_enum_t eVoteSignalIn) const;
 
-    bool GetCurrentMNVotes(const COutPoint& mnCollateralOutpoint, vote_rec_t& voteRecord) const;
+    bool GetCurrentMNVotes(const COutPoint& mnCollateralOutpoint, vote_rec_t& voteRecord);
 
     // FUNCTIONS FOR DEALING WITH DATA STRING
 
-    std::string GetDataAsHexString() const;
-    std::string GetDataAsPlainString() const;
+    std::string GetDataAsHex();
+    std::string GetDataAsString();
 
     // SERIALIZER
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
     {
         // SERIALIZE DATA FOR SAVING/LOADING OR NETWORK FUNCTIONS
-        int nVersion = s.GetVersion();
+
         READWRITE(nHashParent);
         READWRITE(nRevision);
         READWRITE(nTime);
         READWRITE(nCollateralHash);
-        if (nVersion == 70208 && (s.GetType() & SER_NETWORK)) {
-            // converting from/to old format
-            std::string strDataHex;
-            if (ser_action.ForRead()) {
-                READWRITE(LIMITED_STRING(strDataHex, MAX_GOVERNANCE_OBJECT_DATA_SIZE));
-                vchData = ParseHex(strDataHex);
-            } else {
-                strDataHex = HexStr(vchData);
-                READWRITE(LIMITED_STRING(strDataHex, MAX_GOVERNANCE_OBJECT_DATA_SIZE));
-            }
-        } else {
-            // using new format directly
-            READWRITE(vchData);
-        }
+        READWRITE(LIMITED_STRING(strData, MAX_GOVERNANCE_OBJECT_DATA_SIZE));
         READWRITE(nObjectType);
-        if (nVersion == 70208 && (s.GetType() & SER_NETWORK)) {
-            // converting from/to old format
-            CTxIn txin;
-            if (ser_action.ForRead()) {
-                READWRITE(txin);
-                masternodeOutpoint = txin.prevout;
-            } else {
-                txin = CTxIn(masternodeOutpoint);
-                READWRITE(txin);
-            }
-        } else {
-            // using new format directly
-            READWRITE(masternodeOutpoint);
-        }
-        if (!(s.GetType() & SER_GETHASH)) {
-            READWRITE(vchSig);
-        }
-        if(s.GetType() & SER_DISK) {
+        READWRITE(vinMasternode);
+        READWRITE(vchSig);
+        if(nType & SER_DISK) {
             // Only include these for the disk file format
             LogPrint("gobject", "CGovernanceObject::SerializationOp Reading/writing votes from/to disk\n");
             READWRITE(nDeletionTime);

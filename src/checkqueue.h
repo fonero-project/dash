@@ -30,7 +30,7 @@ template <typename T>
 class CCheckQueue
 {
 private:
-    //! Mutex to protect the inner state
+    //! Mutex to fonero the inner state
     boost::mutex mutex;
 
     //! Worker threads block on this when out of work
@@ -127,9 +127,6 @@ private:
     }
 
 public:
-    //! Mutex to ensure only one concurrent CCheckQueueControl
-    boost::mutex ControlMutex;
-
     //! Create a new check queue
     CCheckQueue(unsigned int nBatchSizeIn) : nIdle(0), nTotal(0), fAllOk(true), nTodo(0), fQuit(false), nBatchSize(nBatchSizeIn) {}
 
@@ -164,6 +161,12 @@ public:
     {
     }
 
+    bool IsIdle()
+    {
+        boost::unique_lock<boost::mutex> lock(mutex);
+        return (nTotal == nIdle && nTodo == 0 && fAllOk == true);
+    }
+
 };
 
 /** 
@@ -174,18 +177,16 @@ template <typename T>
 class CCheckQueueControl
 {
 private:
-    CCheckQueue<T> * const pqueue;
+    CCheckQueue<T>* pqueue;
     bool fDone;
 
 public:
-    CCheckQueueControl() = delete;
-    CCheckQueueControl(const CCheckQueueControl&) = delete;
-    CCheckQueueControl& operator=(const CCheckQueueControl&) = delete;
-    explicit CCheckQueueControl(CCheckQueue<T> * const pqueueIn) : pqueue(pqueueIn), fDone(false)
+    CCheckQueueControl(CCheckQueue<T>* pqueueIn) : pqueue(pqueueIn), fDone(false)
     {
         // passed queue is supposed to be unused, or NULL
         if (pqueue != NULL) {
-            ENTER_CRITICAL_SECTION(pqueue->ControlMutex);
+            bool isIdle = pqueue->IsIdle();
+            assert(isIdle);
         }
     }
 
@@ -208,9 +209,6 @@ public:
     {
         if (!fDone)
             Wait();
-        if (pqueue != NULL) {
-            LEAVE_CRITICAL_SECTION(pqueue->ControlMutex);
-        }
     }
 };
 

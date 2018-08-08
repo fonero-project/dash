@@ -106,7 +106,7 @@ private:
 class Win32WritableFile : public WritableFile
 {
 public:
-    Win32WritableFile(const std::string& fname, bool append);
+    Win32WritableFile(const std::string& fname);
     ~Win32WritableFile();
 
     virtual Status Append(const Slice& data);
@@ -157,8 +157,6 @@ public:
     virtual Status NewRandomAccessFile(const std::string& fname,
         RandomAccessFile** result);
     virtual Status NewWritableFile(const std::string& fname,
-        WritableFile** result);
-    virtual Status NewAppendableFile(const std::string& fname,
         WritableFile** result);
 
     virtual bool FileExists(const std::string& fname);
@@ -425,23 +423,17 @@ void Win32RandomAccessFile::_CleanUp()
     }
 }
 
-Win32WritableFile::Win32WritableFile(const std::string& fname, bool append)
+Win32WritableFile::Win32WritableFile(const std::string& fname)
     : filename_(fname)
 {
     std::wstring path;
     ToWidePath(fname, path);
-    // NewAppendableFile: append to an existing file, or create a new one
-    //     if none exists - this is OPEN_ALWAYS behavior, with
-    //     FILE_APPEND_DATA to avoid having to manually position the file
-    //     pointer at the end of the file.
-    // NewWritableFile: create a new file, delete if it exists - this is
-    //     CREATE_ALWAYS behavior. This file is used for writing only so
-    //     use GENERIC_WRITE.
+    DWORD Flag = PathFileExistsW(path.c_str()) ? OPEN_EXISTING : CREATE_ALWAYS;
     _hFile = CreateFileW(path.c_str(),
-                         append ? FILE_APPEND_DATA : GENERIC_WRITE,
+                         GENERIC_READ | GENERIC_WRITE,
                          FILE_SHARE_READ|FILE_SHARE_DELETE|FILE_SHARE_WRITE,
                          NULL,
-                         append ? OPEN_ALWAYS : CREATE_ALWAYS,
+                         Flag,
                          FILE_ATTRIBUTE_NORMAL,
                          NULL);
     // CreateFileW returns INVALID_HANDLE_VALUE in case of error, always check isEnable() before use
@@ -831,9 +823,7 @@ Status Win32Env::NewLogger( const std::string& fname, Logger** result )
 {
     Status sRet;
     std::string path = fname;
-    // Logs are opened with write semantics, not with append semantics
-    // (see PosixEnv::NewLogger)
-    Win32WritableFile* pMapFile = new Win32WritableFile(ModifyPath(path), false);
+    Win32WritableFile* pMapFile = new Win32WritableFile(ModifyPath(path));
     if(!pMapFile->isEnable()){
         delete pMapFile;
         *result = NULL;
@@ -847,20 +837,7 @@ Status Win32Env::NewWritableFile( const std::string& fname, WritableFile** resul
 {
     Status sRet;
     std::string path = fname;
-    Win32WritableFile* pFile = new Win32WritableFile(ModifyPath(path), false);
-    if(!pFile->isEnable()){
-        *result = NULL;
-        sRet = Status::IOError(fname,Win32::GetLastErrSz());
-    }else
-        *result = pFile;
-    return sRet;
-}
-
-Status Win32Env::NewAppendableFile( const std::string& fname, WritableFile** result )
-{
-    Status sRet;
-    std::string path = fname;
-    Win32WritableFile* pFile = new Win32WritableFile(ModifyPath(path), true);
+    Win32WritableFile* pFile = new Win32WritableFile(ModifyPath(path));
     if(!pFile->isEnable()){
         *result = NULL;
         sRet = Status::IOError(fname,Win32::GetLastErrSz());

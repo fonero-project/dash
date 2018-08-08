@@ -83,7 +83,7 @@ private:
     SampleQueue sumEach2Samples(const SampleQueue &rangeQueue);
     SampleQueue sumEach3Samples(const SampleQueue &rangeQueue, GraphRange range);
 
-    float convertSampleToBandwidth(float dataAmount);
+    float converSampletoBandwith(float dataAmount);
     TrafficGraphData(const TrafficGraphData& that);
     TrafficGraphData& operator=(TrafficGraphData const&);
 };

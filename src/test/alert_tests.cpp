@@ -11,14 +11,15 @@
 #include "data/alertTests.raw.h"
 #include "serialize.h"
 #include "streams.h"
+#include "util.h"
 #include "utilstrencodings.h"
 
-#include "test/testutil.h"
-#include "test/test_dash.h"
+#include "test/test_fonero.h"
 
 #include <fstream>
 
 #include <boost/filesystem/operations.hpp>
+#include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
 
 //
@@ -109,7 +110,7 @@ struct ReadAlerts : public TestingSetup
 {
     ReadAlerts()
     {
-        std::vector<unsigned char> vch(raw_tests::alertTests, raw_tests::alertTests + sizeof(raw_tests::alertTests));
+        std::vector<unsigned char> vch(alert_tests::alertTests, alert_tests::alertTests + sizeof(alert_tests::alertTests));
         CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
         try {
             while (!stream.eof())
@@ -144,7 +145,7 @@ BOOST_FIXTURE_TEST_SUITE(Alert_tests, ReadAlerts)
 // - update alerts in GenerateAlertTests() (optional)
 // - enable code below (#if 1)
 // - replace "fffffffffffffffffffffffffffffffffffffffffffffffffff" with the actual MAINNET privkey
-// - recompile and run "/path/to/test_dash -t Alert_test"
+// - recompile and run "/path/to/test_fonero -t Alert_test"
 //
 // NOTE: make sure to disable code and remove alert privkey when you're done!
 //
@@ -161,7 +162,7 @@ BOOST_AUTO_TEST_CASE(AlertApplies)
     SetMockTime(11);
     const std::vector<unsigned char>& alertKey = Params(CBaseChainParams::MAIN).AlertKey();
 
-    for (const auto& alert : alerts)
+    BOOST_FOREACH(const CAlert& alert, alerts)
     {
         BOOST_CHECK(alert.CheckSignature(alertKey));
     }
@@ -205,9 +206,9 @@ BOOST_AUTO_TEST_CASE(AlertNotify)
     boost::filesystem::path temp = GetTempPath() /
         boost::filesystem::unique_path("alertnotify-%%%%.txt");
 
-    ForceSetArg("-alertnotify", std::string("echo %s >> ") + temp.string());
+    mapArgs["-alertnotify"] = std::string("echo %s >> ") + temp.string();
 
-    for (const auto& alert : alerts)
+    BOOST_FOREACH(CAlert alert, alerts)
         alert.ProcessAlert(alertKey, false);
 
     std::vector<std::string> r = read_lines(temp);
