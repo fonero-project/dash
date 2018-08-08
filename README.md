@@ -12,6 +12,25 @@ Fonero Core staging tree 0.13.0.1
 - Crex24.com: https://crex24.com/exchange/FNO-BTC  
 - Stocks.exchange: https://app.stocks.exchange/en/basic-trade/pair/BTC/FNO/1D
 
+###### Nodes:  
+- addnode=85.10.194.14:19190
+- addnode=188.40.62.51:19190
+- addnode=37.9.52.254:19190
+- addnode=37.9.52.253:19190
+- addnode=37.9.52.252:19190
+- addnode=37.9.52.17:19190
+- addnode=37.9.52.16:19190
+- addnode=5.188.205.146:19190
+- addnode=5.188.205.112:19190
+- addnode=5.188.204.7:19190
+- addnode=5.188.204.5:19190
+- addnode=5.188.204.4:19190
+- addnode=5.188.204.3:19190
+- addnode=5.188.63.248:19190
+- addnode=5.188.63.247:19190
+- addnode=5.188.63.102:19190
+- addnode=5.188.63.50:19190
+
 License
 -------
 
