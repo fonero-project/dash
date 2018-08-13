@@ -40,7 +40,7 @@ Then execute the command below:
 - Run the wallet (fonero-qt.exe)
 - Wait for it to load
 - Click Options -> Wallet -> and check "Enable coin control features" & "Show Masternode tab"
-- If your coin is still in the exchange, transfer at least 1001 coins back to your windows wallet
+- If your coin is still in the exchange, transfer at least 50001 coins back to your windows wallet
 - Inside the windows wallet, click File -> Receiving Address
 - Click "New"
 - Put a name as label for the new address
