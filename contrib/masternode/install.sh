@@ -16,12 +16,14 @@ sudo apt-get install mc htop git python-virtualenv ntpdate -y
 sudo ntpdate -u pool.ntp.org
 sudo mkdir /opt/fonero-core
 cd /opt/fonero-core
-wget https://github.com/fonero-project/fonero/releases/download/0.12.3.4/fonero-0.12.3.4-linux-x64.tgz
-tar -xvf fonero-0.12.3.4-linux-x64.tgz
-rm fonero-0.12.3.4-linux-x64.tgz
-mv fonero-0.12.3.4-linux-x64/fonerod ./fonerod
-mv fonero-0.12.3.4-linux-x64/fonero-cli ./fonero-cli
-rm -rf fonero-0.12.3.4-linux-x64
+wget https://github.com/fonero-project/fonero/releases/download/v0.13.0.1/fonero-0.13.0.1-linux.tgz
+tar -xvf fonero-0.13.0.1-linux.tgz
+rm fonero-0.13.0.1-linux.tgz
+mv fonero-0.13.0.1-linux/fonerod ./fonerod
+mv fonero-0.13.0.1-linux/fonero-cli ./fonero-cli
+mv fonero-0.13.0.1-linux/fonero-tx ./fonero-tx
+mv fonero-0.13.0.1-linux/fonero-qt ./fonero-qt
+rm -rf fonero-0.13.0.1-linux
 chmod -R 755 /opt/fonero-core
 cd /opt
 git clone https://github.com/fonero-project/fonero-sentinel fonero-sentinel
@@ -35,7 +37,7 @@ sleep 10
 masternodekey=$(./fonero-cli masternode genkey)
 ./fonero-cli stop
 sleep 3
-echo -e "\ndaemon=1\nmaxconnections=256\nmasternode=1\nmasternodeprivkey=$masternodekey" >> "/root/.fonerocore/fonero.conf"
+echo -e "addnode=85.10.194.14:19190\naddnode=188.40.62.51:19190\naddnode=37.9.52.254:19190\naddnode=37.9.52.253:19190\naddnode=37.9.52.252:19190\naddnode=37.9.52.17:19190\naddnode=37.9.52.16:19190\naddnode=5.188.205.146:19190\naddnode=5.188.205.112:19190\naddnode=5.188.204.7:19190\naddnode=5.188.204.5:19190\naddnode=5.188.204.4:19190\naddnode=5.188.204.3:19190\naddnode=5.188.63.248:19190\naddnode=5.188.63.247:19190\naddnode=5.188.63.102:19190\naddnode=5.188.63.50:19190\ndaemon=1\nmaxconnections=256\nmasternode=1\nmasternodeprivkey=$masternodekey" >> "/root/.fonerocore/fonero.conf"
 sleep 3
 sudo sed -i -e "s/exit 0/sudo \-u root \/opt\/fonero-core\/fonerod \> \/dev\/null \&\nexit 0/g" /etc/rc.local
 ./fonerod -daemon
