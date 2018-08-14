@@ -9,9 +9,9 @@ Fonero Core staging tree 0.13.0.1
 - Sentinel: https://github.com/fonero-project/fonero-sentinel  
 
 ###### Exchanges:  
-- Crex24.com: https://crex24.com/exchange/FNO-BTC  
 - Stocks.exchange: https://app.stocks.exchange/en/basic-trade/pair/BTC/FNO/1D
 - Btc-trade.com.ua: https://btc-trade.com.ua/stock/fno_uah
+- Crex24.com [close]: https://crex24.com/exchange/FNO-BTC
 
 ###### Nodes:  
 - addnode=85.10.194.14:19190
