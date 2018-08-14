@@ -4,9 +4,10 @@ Fonero Core staging tree 0.13.0.1
 ## Development Resources
 
 ###### Resources:
-- Official site: https://fonero.org  
-- Block explorer: https://explorer.fonero.org  
-- Sentinel: https://github.com/fonero-project/fonero-sentinel  
+- Official site: https://fonero.org
+- Block explorer: https://explorer.fonero.org
+- Sentinel: https://github.com/fonero-project/fonero-sentinel
+- Masternodes: https://github.com/fonero-project/fonero/blob/master/MASTERNODE.md
 
 ###### Exchanges:  
 - Stocks.exchange: https://app.stocks.exchange/en/basic-trade/pair/BTC/FNO/1D
