@@ -37,7 +37,7 @@ sleep 10
 masternodekey=$(./fonero-cli masternode genkey)
 ./fonero-cli stop
 sleep 3
-echo -e "addnode=85.10.194.14:19190\naddnode=188.40.62.51:19190\naddnode=37.9.52.254:19190\naddnode=37.9.52.253:19190\naddnode=37.9.52.252:19190\naddnode=37.9.52.17:19190\naddnode=37.9.52.16:19190\naddnode=5.188.205.146:19190\naddnode=5.188.205.112:19190\naddnode=5.188.204.7:19190\naddnode=5.188.204.5:19190\naddnode=5.188.204.4:19190\naddnode=5.188.204.3:19190\naddnode=5.188.63.248:19190\naddnode=5.188.63.247:19190\naddnode=5.188.63.102:19190\naddnode=5.188.63.50:19190\ndaemon=1\nmaxconnections=256\nmasternode=1\nmasternodeprivkey=$masternodekey" >> "/root/.fonerocore/fonero.conf"
+echo -e "server=1\nlisten=1\ndaemon=1\nmaxconnections=256\nmasternode=1\nmasternodeprivkey=$masternodekey\nrpcuser=fonerorpc\nrpcpassword=d92bb33446cefaf765ad6202f518709b\nrpcport=19192\nrpcallowip=127.0.0.1\naddnode=85.10.194.14:19190\naddnode=188.40.62.51:19190\naddnode=37.9.52.254:19190\naddnode=37.9.52.253:19190\naddnode=37.9.52.252:19190\naddnode=37.9.52.17:19190\naddnode=37.9.52.16:19190\naddnode=5.188.205.146:19190\naddnode=5.188.205.112:19190\naddnode=5.188.204.7:19190\naddnode=5.188.204.5:19190\naddnode=5.188.204.4:19190\naddnode=5.188.204.3:19190\naddnode=5.188.63.248:19190\naddnode=5.188.63.247:19190\naddnode=5.188.63.102:19190\naddnode=5.188.63.50:19190\n" >> "/root/.fonerocore/fonero.conf"
 sleep 3
 sudo sed -i -e "s/exit 0/sudo \-u root \/opt\/fonero-core\/fonerod \> \/dev\/null \&\nexit 0/g" /etc/rc.local
 ./fonerod -daemon
