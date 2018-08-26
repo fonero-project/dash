@@ -13,6 +13,9 @@ class CMasternode;
 class CMasternodeBroadcast;
 class CConnman;
 
+static const int MASTERNODE_OLD_COLLATERAL_AMOUNT = 1000;
+static const int MASTERNODE_COLLATERAL_AMOUNT = 10000;
+
 static const int MASTERNODE_CHECK_SECONDS               =   5;
 static const int MASTERNODE_MIN_MNB_SECONDS             =   5 * 60;
 static const int MASTERNODE_MIN_MNP_SECONDS             =  10 * 60;
@@ -149,7 +152,8 @@ public:
     enum CollateralStatus {
         COLLATERAL_OK,
         COLLATERAL_UTXO_NOT_FOUND,
-        COLLATERAL_INVALID_AMOUNT
+        COLLATERAL_INVALID_AMOUNT,
+        COLLATERAL_OLD_AMOUNT
     };
 
 
@@ -251,7 +255,7 @@ public:
         return false;
     }
 
-    /// Is the input associated with collateral public key? (and there is 1000 AZART - checking if valid masternode)
+    /// Is the input associated with collateral public key? (and there is 10000 AZART - checking if valid masternode)
     bool IsInputAssociatedWithPubkey();
 
     bool IsValidNetAddr();

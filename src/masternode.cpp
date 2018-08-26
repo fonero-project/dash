@@ -116,7 +116,11 @@ CMasternode::CollateralStatus CMasternode::CheckCollateral(const COutPoint& outp
         return COLLATERAL_UTXO_NOT_FOUND;
     }
 
-    if(coin.out.nValue != 1000 * COIN) {
+    if(coin.out.nValue != MASTERNODE_COLLATERAL_AMOUNT * COIN) {
+        if(coin.out.nValue == MASTERNODE_OLD_COLLATERAL_AMOUNT * COIN){
+            nHeightRet = coin.nHeight;
+            return COLLATERAL_OLD_AMOUNT;
+        }
         return COLLATERAL_INVALID_AMOUNT;
     }
 
@@ -147,6 +151,24 @@ void CMasternode::Check(bool fForce)
         if (err == COLLATERAL_UTXO_NOT_FOUND) {
             nActiveState = MASTERNODE_OUTPOINT_SPENT;
             LogPrint("masternode", "CMasternode::Check -- Failed to find Masternode UTXO, masternode=%s\n", vin.prevout.ToStringShort());
+            return;
+        }
+
+        if (err == COLLATERAL_INVALID_AMOUNT) {
+            nActiveState = MASTERNODE_OUTPOINT_SPENT;
+            LogPrint("masternode", "CMasternode::Check -- Masternode UTXO is invalid, masternode=%s\n", vin.prevout.ToStringShort());
+            return;
+        }
+        if (err == COLLATERAL_OLD_AMOUNT ) {
+            
+            if ( nProtocolVersion <= OLD_COLLATERAL_PROTOCOL_VERSION ){
+                nActiveState = MASTERNODE_UPDATE_REQUIRED;
+                LogPrint("masternode", "CMasternode::Check -- Masternode has old collateral amount, masternode=%s\n", vin.prevout.ToStringShort());
+                return;
+            }
+            
+            nActiveState = MASTERNODE_OUTPOINT_SPENT;
+            LogPrint("masternode", "CMasternode::Check -- Masternode UTXO is invalid, masternode=%s\n", vin.prevout.ToStringShort());
             return;
         }
 
@@ -252,7 +274,7 @@ bool CMasternode::IsInputAssociatedWithPubkey()
     uint256 hash;
     if(GetTransaction(vin.prevout.hash, tx, Params().GetConsensus(), hash, true)) {
         BOOST_FOREACH(CTxOut out, tx.vout)
-            if(out.nValue == 1000*COIN && out.scriptPubKey == payee) return true;
+            if((out.nValue == MASTERNODE_COLLATERAL_AMOUNT * COIN  || out.nValue == MASTERNODE_OLD_COLLATERAL_AMOUNT * COIN)  && out.scriptPubKey == payee)  return true;
     }
 
     return false;
@@ -560,7 +582,7 @@ bool CMasternodeBroadcast::CheckOutpoint(int& nDos)
         }
 
         if (err == COLLATERAL_INVALID_AMOUNT) {
-            LogPrint("masternode", "CMasternodeBroadcast::CheckOutpoint -- Masternode UTXO should have 1000 AZART, masternode=%s\n", vin.prevout.ToStringShort());
+            LogPrint("masternode", "CMasternodeBroadcast::CheckOutpoint -- Masternode UTXO should have %s AZART, masternode=%s\n", MASTERNODE_COLLATERAL_AMOUNT, vin.prevout.ToStringShort());
             return false;
         }
 
@@ -586,7 +608,7 @@ bool CMasternodeBroadcast::CheckOutpoint(int& nDos)
     }
 
     // verify that sig time is legit in past
-    // should be at least not earlier than block when 1000 AZART tx got nMasternodeMinimumConfirmations
+    // should be at least not earlier than block when 10000 AZART tx got nMasternodeMinimumConfirmations
     uint256 hashBlock = uint256();
     CTransaction tx2;
     GetTransaction(vin.prevout.hash, tx2, Params().GetConsensus(), hashBlock, true);
@@ -594,7 +616,7 @@ bool CMasternodeBroadcast::CheckOutpoint(int& nDos)
         LOCK(cs_main);
         BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
         if (mi != mapBlockIndex.end() && (*mi).second) {
-            CBlockIndex* pMNIndex = (*mi).second; // block for 1000 AZART tx -> 1 confirmation
+            CBlockIndex* pMNIndex = (*mi).second; // block for 10000 AZART tx -> 1 confirmation
             CBlockIndex* pConfIndex = chainActive[pMNIndex->nHeight + Params().GetConsensus().nMasternodeMinimumConfirmations - 1]; // block where tx got nMasternodeMinimumConfirmations
             if(pConfIndex->GetBlockTime() > sigTime) {
                 LogPrintf("CMasternodeBroadcast::CheckOutpoint -- Bad sigTime %d (%d conf block is at %d) for Masternode %s %s\n",

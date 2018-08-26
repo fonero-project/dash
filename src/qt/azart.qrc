@@ -61,6 +61,7 @@
         <file alias="default">res/css/default.css</file>
     </qresource>
     <qresource prefix="/images/default">
+        <file alias="horizontal">res/images/default/horizontal.png</file>
         <file alias="about">res/images/default/about.png</file>
         <file alias="splash">res/images/default/splash.png</file>
         <file alias="splash_testnet">res/images/default/splash_testnet.png</file>

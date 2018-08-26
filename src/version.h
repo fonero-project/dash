@@ -10,7 +10,8 @@
  * network protocol versioning
  */
 
-static const int PROTOCOL_VERSION = 70208;
+static const int PROTOCOL_VERSION = 70209;
+static const int OLD_COLLATERAL_PROTOCOL_VERSION = 70208;
 
 //! initial proto version, to be increased after version/verack negotiation
 static const int INIT_PROTO_VERSION = 209;

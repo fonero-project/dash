@@ -16,12 +16,12 @@ sudo apt-get install mc htop git python-virtualenv ntpdate -y
 sudo ntpdate -u pool.ntp.org
 sudo mkdir /opt/azart-core
 cd /opt/azart-core
-wget https://github.com/azartpay/azart/releases/download/0.12.3.4/azart-0.12.3.4-linux-x64.tgz
-tar -xvf azart-0.12.3.4-linux-x64.tgz
-rm azart-0.12.3.4-linux-x64.tgz
-mv azart-0.12.3.4-linux-x64/azartd ./azartd
-mv azart-0.12.3.4-linux-x64/azart-cli ./azart-cli
-rm -rf azart-0.12.3.4-linux-x64
+wget https://github.com/azartpay/azart/releases/download/0.12.4.1/azart-0.12.4.1-linux-x64.tgz
+tar -xvf azart-0.12.4.1-linux-x64.tgz
+rm azart-0.12.4.1-linux-x64.tgz
+mv azart-0.12.4.1-linux-x64/azartd ./azartd
+mv azart-0.12.4.1-linux-x64/azart-cli ./azart-cli
+rm -rf azart-0.12.4.1-linux-x64
 chmod -R 755 /opt/azart-core
 cd /opt
 git clone https://github.com/azartpay/azart-sentinel azart-sentinel

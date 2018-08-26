@@ -3,7 +3,7 @@ This is a complete guide to setting up a Masternode for Azart Coin. The method e
 
 #### What you will need (recommended) ####
 1. Download the latest windows Azart wallet from here.
-2. Get 1000 IFX coins (you can get 1 more coin to cover transaction fee)
+2. Get 10000 AZART coins (you can get 1 more coin to cover transaction fee)
 3. Download Putty (https://the.earth.li/~sgtatham/putty/latest/w32/putty-0.70-installer.msi)
 
 #### Getting started ####
@@ -40,18 +40,18 @@ Then execute the command below:
 - Run the wallet (azart-qt.exe)
 - Wait for it to load
 - Click Options -> Wallet -> and check "Enable coin control features" & "Show Masternode tab"
-- If your coin is still in the exchange, transfer at least 1001 coins back to your windows wallet
+- If your coin is still in the exchange, transfer at least 10001 coins back to your windows wallet
 - Inside the windows wallet, click File -> Receiving Address
 - Click "New"
 - Put a name as label for the new address
 - Right-click the address, select and copy the address to notepad
-- When you have the 1001 coins in your wallet, click on "Send" tab
+- When you have the 10001 coins in your wallet, click on "Send" tab
 - Paste the copied address in "Pay to:"
-- Key in amount "1000" (have to be exact)
+- Key in amount "10000" (have to be exact)
 - Click "Send" button
 
 #### Lastly ####
-- Once you have the 1000 coins in the new address, Click Tools -> debug console on the wallet
+- Once you have the 10000 coins in the new address, Click Tools -> debug console on the wallet
 - Issue the command "masternode outputs"
 - For the output, there would be one long text (transaction id) and 1 single digit at the end (output index)
 - Copy the output to notepad

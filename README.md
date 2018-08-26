@@ -1,4 +1,4 @@
-Azart Core staging tree 0.12.3.4
+Azart Core staging tree 0.12.4.1
 ===============================
 
 
@@ -16,9 +16,6 @@ Azart Core staging tree 0.12.3.4
 
 ###### Exchanges:  
 - Crex24.com: https://crex24.com/exchange/AZART-BTC  
-
-###### Nodes in China
-- 200.7.111.100:9799
 
 License
 -------

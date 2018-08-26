@@ -453,8 +453,8 @@ bool CGovernanceObject::IsValidLocally(std::string& strError, bool& fMissingMast
                     strError = "Masternode not found: " + strOutpoint;
                 } else if (err == CMasternode::COLLATERAL_UTXO_NOT_FOUND) {
                     strError = "Failed to find Masternode UTXO, missing masternode=" + strOutpoint + "\n";
-                } else if (err == CMasternode::COLLATERAL_INVALID_AMOUNT) {
-                    strError = "Masternode UTXO should have 1000 AZART, missing masternode=" + strOutpoint + "\n";
+                } else if (err == CMasternode::COLLATERAL_INVALID_AMOUNT || err == CMasternode::COLLATERAL_OLD_AMOUNT) {
+                    strError = "Masternode UTXO should have " + std::to_string(MASTERNODE_COLLATERAL_AMOUNT) + ", missing masternode=" + strOutpoint + "\n";
                 }
 
                 return false;

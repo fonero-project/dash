@@ -96,31 +96,31 @@ public:
         consensus.nPowTargetSpacing = 120; // 2*60; // Azart: 2 minutes
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
-        consensus.nPowKGWHeight = 0; // 15200;
-        consensus.nPowDGWHeight = 0; // 34140;
-        consensus.nRuleChangeActivationThreshold = 1916; // 95% of 2016
-        consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
+        consensus.nPowKGWHeight = 0;;
+        consensus.nPowDGWHeight = 0;;
+        consensus.nRuleChangeActivationThreshold = 1916;
+        consensus.nMinerConfirmationWindow = 2016;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601; // January 1, 2008
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601;
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999;
 
         // Deployment of BIP68, BIP112, and BIP113.
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 1486252800; // Feb 5th, 2017
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1517788800; // Feb 5th, 2018
+        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 1486252800;
+        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1517788800;
 
         // Deployment of DIP0001
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].bit = 1;
-        consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nStartTime = 1508025600; // Oct 15th, 2017
-        consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nTimeout = 1539561600; // Oct 15th, 2018
+        consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nStartTime = 1508025600;
+        consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nTimeout = 1539561600;
         consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nWindowSize = 4032;
-        consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nThreshold = 3226; // 80% of 4032
+        consensus.vDeployments[Consensus::DEPLOYMENT_DIP0001].nThreshold = 3226;
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000024571014501c7528"); // 39102
+        consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000000337d8b27f5e3cd2a"); // 67092
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x000000000005a8ceec62a7bb3c3d6c2083e0cd632d15dcf4cf11e11a87839fee"); // 39102
+        consensus.defaultAssumeValid = uint256S("0x00000000000672ef6414a8cc0928117dd13c4fff4267b92c302bc592cd2f4e24"); // 67092
 
         /**
          * The message start string is designed to be unlikely to occur in normal data.
@@ -144,7 +144,7 @@ public:
 	    
         vSeeds.push_back(CDNSSeedData("5.9.6.17", "5.9.6.17"));
         vSeeds.push_back(CDNSSeedData("5.9.73.81", "5.9.73.81"));
-        vSeeds.push_back(CDNSSeedData("200.7.111.100", "200.7.111.100"));
+        //vSeeds.push_back(CDNSSeedData("200.7.111.100", "200.7.111.100"));
         //vSeeds.clear();
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,24);
@@ -176,9 +176,10 @@ public:
             ( 5635, uint256S("0x000000000002665ec91010085bff6585a4daa4b302d4ce50eb0a297674314362"))
             ( 17724, uint256S("0x000000000001299301bc564d648abde01925a869e2100a76dcc52a75be699b29"))
             ( 20774, uint256S("0x00000000000699d6a1f6c9403f3b77e1298a243dcbf9d1e901cc8cf3c462767c"))
-            ( 39105, uint256S("0x0000000000064a532a151cb92a486be918578386ccf691d456525f33760a15ee")),
-            1526536800, // * UNIX timestamp of last checkpoint block
-            23895,    // * total number of transactions between genesis and last checkpoint
+            ( 39105, uint256S("0x0000000000064a532a151cb92a486be918578386ccf691d456525f33760a15ee"))
+            ( 67092, uint256S("0x00000000000672ef6414a8cc0928117dd13c4fff4267b92c302bc592cd2f4e24")),
+            1535185107, // * UNIX timestamp of last checkpoint block
+            44703,    // * total number of transactions between genesis and last checkpoint
                         //   (the tx=... number in the SetBestChain debug.log lines)
             5000        // * estimated number of transactions per day after checkpoint
         };
