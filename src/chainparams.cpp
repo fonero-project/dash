@@ -96,8 +96,8 @@ public:
         consensus.nPowTargetSpacing = 120; // 2*60; // Azart: 2 minutes
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
-        consensus.nPowKGWHeight = 0;;
-        consensus.nPowDGWHeight = 0;;
+        consensus.nPowKGWHeight = 0;
+        consensus.nPowDGWHeight = 0;
         consensus.nRuleChangeActivationThreshold = 1916;
         consensus.nMinerConfirmationWindow = 2016;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
