@@ -5,7 +5,7 @@ Fonero Core staging tree 0.13.0.1
 
 ###### Resources:
 
-- Whitepaper: (whitepaper.pdf)[https://github.com/fonero-project/fonero/blob/master/fonero-docs/whitepaper.pdf]
+- Whitepaper: [whitepaper.pdf](https://github.com/fonero-project/fonero/blob/master/fonero-docs/whitepaper.pdf)
 - Official site: https://fonero.org
 - Block explorer: https://explorer.fonero.org
 - Sentinel: https://github.com/fonero-project/fonero-sentinel
