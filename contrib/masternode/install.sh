@@ -16,14 +16,14 @@ sudo apt-get install mc htop git python-virtualenv ntpdate -y
 sudo ntpdate -u pool.ntp.org
 sudo mkdir /opt/fonero-core
 cd /opt/fonero-core
-wget https://github.com/fonero-project/fonero/releases/download/v0.13.0.2/fonero-0.13.0.2-linux.tgz
-tar -xvf fonero-0.13.0.2-linux.tgz
-rm fonero-0.13.0.2-linux.tgz
-mv fonero-0.13.0.2-linux/fonerod ./fonerod
-mv fonero-0.13.0.2-linux/fonero-cli ./fonero-cli
-mv fonero-0.13.0.2-linux/fonero-tx ./fonero-tx
-mv fonero-0.13.0.2-linux/fonero-qt ./fonero-qt
-rm -rf fonero-0.13.0.2-linux
+wget https://github.com/fonero-project/fonero/releases/download/v0.13.0.3/fonero-0.13.0.3-linux.tgz
+tar -xvf fonero-0.13.0.3-linux.tgz
+rm fonero-0.13.0.3-linux.tgz
+mv fonero-0.13.0.3-linux/fonerod ./fonerod
+mv fonero-0.13.0.3-linux/fonero-cli ./fonero-cli
+mv fonero-0.13.0.3-linux/fonero-tx ./fonero-tx
+mv fonero-0.13.0.3-linux/fonero-qt ./fonero-qt
+rm -rf fonero-0.13.0.3-linux
 chmod -R 755 /opt/fonero-core
 cd /opt
 git clone https://github.com/fonero-project/fonero-sentinel fonero-sentinel
