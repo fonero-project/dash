@@ -1,4 +1,4 @@
-Fonero Core staging tree 0.13.0.3
+Fonero Core staging tree 0.13.0.4
 ===============================
 
 ## Development Resources
@@ -12,6 +12,7 @@ Fonero Core staging tree 0.13.0.3
 - Masternodes: https://github.com/fonero-project/fonero/blob/master/MASTERNODE.md
 
 ###### Exchanges:  
+- Dexas: https://dex.as/market/DEXAS.FNO_DEXAS.BTC
 - Stocks.exchange: https://app.stocks.exchange/en/basic-trade/pair/BTC/FNO/1D
 - Btc-trade.com.ua: https://btc-trade.com.ua/stock/fno_uah
 - Crex24.com [close]: https://crex24.com/exchange/FNO-BTC
@@ -22,8 +23,6 @@ Fonero Core staging tree 0.13.0.3
 - addnode=37.9.52.254:19190
 - addnode=37.9.52.253:19190
 - addnode=37.9.52.252:19190
-- addnode=37.9.52.17:19190
-- addnode=37.9.52.16:19190
 - addnode=5.188.205.146:19190
 - addnode=5.188.205.112:19190
 - addnode=5.188.204.7:19190
@@ -34,6 +33,8 @@ Fonero Core staging tree 0.13.0.3
 - addnode=5.188.63.247:19190
 - addnode=5.188.63.102:19190
 - addnode=5.188.63.50:19190
+- addnode=37.9.52.17:19190
+- addnode=37.9.52.16:19190
 - addnode=193.47.33.49:19190
 - addnode=193.47.33.48:19190
 - addnode=193.47.33.47:19190
