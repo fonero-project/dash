@@ -1,4 +1,4 @@
-Fonero Core staging tree 0.13.0.5
+Fonero Core staging tree 0.13.0.6
 ===============================
 
 ## Development Resources
