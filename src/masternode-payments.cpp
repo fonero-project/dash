@@ -749,7 +749,7 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight, CConnman& connman)
     }
 
     LogPrintf("CMasternodePayments::ProcessBlock -- Masternode found by GetNextMasternodeInQueueForPayment(): %s\n", mnInfo.vin.prevout.ToStringShort());
-
+/*
 
     CScript payee = GetScriptForDestination(mnInfo.pubKeyCollateralAddress.GetID());
 
@@ -772,7 +772,7 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight, CConnman& connman)
             return true;
         }
     }
-
+*/
     return false;
 }
 
