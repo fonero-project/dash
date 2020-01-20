@@ -631,7 +631,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
         // Create empty fonero.conf if it does not excist
         FILE* configFile = fopen(GetConfigFile().string().c_str(), "a");
         if (configFile != NULL) {
-            fputs("\naddnode=95.216.15.156:19190\naddnode=193.47.33.49:19190\naddnode=193.47.33.48:19190\naddnode=193.47.33.47:19190\naddnode=193.47.33.46:19190\naddnode=193.47.33.45:19190\naddnode=193.47.33.44:19190\naddnode=193.47.33.43:19190\naddnode=193.47.33.42:19190\naddnode=193.47.33.41:19190\naddnode=193.47.33.40:19190\naddnode=193.47.33.39:19190\naddnode=193.47.33.38:19190\naddnode=193.47.33.37:19190\naddnode=5.188.205.161:19190\naddnode=193.47.33.114:19190\naddnode=193.47.33.6:19190\naddnode=193.47.33.5:19190\naddnode=193.47.33.4:19190\naddnode=193.47.33.3:19190\naddnode=5.188.205.146:19190\naddnode=5.188.205.112:19190\naddnode=5.188.63.248:19190\naddnode=5.188.63.247:19190\naddnode=5.188.63.126:19190\naddnode=5.188.63.105:19190\naddnode=5.188.63.102:19190\naddnode=5.188.63.101:19190\naddnode=5.188.63.93:19190\naddnode=5.188.63.50:19190\n", configFile);
+            fputs("\naddnode=138.201.196.174:19190\naddnode=193.47.35.72:19190\n", configFile);
             fclose(configFile);
 	}
     }
